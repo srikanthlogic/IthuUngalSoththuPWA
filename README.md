@@ -1,11 +1,55 @@
-<div align="center">
+# Chennai MTC Public Fleet Tracker
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+**#IthuUngalSoththu (#ThisIsYourProperty)**
 
-  <h1>Built with AI Studio</h2>
+This project is a public effort to enhance accountability in Chennai's public transport system. By providing a live, verifiable view of the Metropolitan Transport Corporation (MTC) fleet, we aim to empower citizens with the data they need to advocate for better services.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+MTC, the public bus operator in Chennai, does not publish real-time, daily data on its fleet operations that can be independently verified. This Progressive Web App (PWA) consumes live data to present an accurate picture of how many buses are on the road at any given time, contrasting official figures with live data to highlight the accountability gap.
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## Key Features
 
-</div>
+*   **Live Dashboard:** A high-level, real-time overview of the entire fleet's status, including breakdowns by bus type (Electric, Low Floor, etc.) and idle duration.
+*   **Detailed Fleet View:** A comprehensive table of every bus. Users can search, sort, and apply multiple filters (status, fleet type, series) to the data.
+*   **Route Analysis:** Analyze the performance and fleet deployment on a per-route basis. See which routes have the most active buses and their utilization rate.
+*   **Data Export:** Export filtered and sorted data from the Fleet and Routes views to CSV for further analysis and reporting.
+*   **Multilingual Interface:** Full support for both English and Tamil (தமிழ்).
+*   **Progressive Web App (PWA):** Installable on mobile and desktop devices for an app-like experience with offline capabilities.
+
+## The Accountability Gap
+
+According to MTC's official (undated) data, their fleet numbers are significantly higher than what is observed in the live data feed.
+
+| Metric                | Official Figure | Live Data (Example) |
+| --------------------- | --------------- | ------------------- |
+| Official Fleet        | 3,810           | -                   |
+| Scheduled Services    | 3,420           | -                   |
+| Total Buses in Feed   | -               | ~3600+             |
+| Actively Tracked      | -               | Often 2,500       |
+
+This significant gap between the officially declared fleet and the number of buses actually running is why public oversight is crucial. The 'Total on App' figure includes every bus ID ever broadcasted by MTC's live feed, which often includes buses that are idle for months or are potentially scrapped but not formally retired from the system.
+
+## Data Source
+
+This application fetches live data from the public API endpoint used by the official Chennai Bus App: `https://production.zophop.com/vasudha/dispatch/chennai/mtc/bus/`.
+
+To bypass browser CORS restrictions, the data is fetched via a public proxy (`api.codetabs.com`). In a production-scale environment, this would be replaced by a dedicated backend service for caching and reliability.
+
+## Technology Stack
+
+*   **Frontend:** React, TypeScript
+*   **Styling:** Tailwind CSS
+*   **Offline Support:** Service Workers (PWA)
+
+## How to Run
+
+This project is a static web application and does not require a complex build process.
+
+1.  Clone or download the repository files.
+2.  Serve the files using a simple local web server. For example, using Python:
+    ```bash
+    # If you have Python 3
+    python -m http.server
+    ```
+3.  Open your browser and navigate to the local server's address (e.g., `http://localhost:8000`).
+
+The application will be running.

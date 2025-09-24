@@ -1,0 +1,5 @@
+{
+  "name": "Chennai MTC Bus Tracker PWA",
+  "description": "A Progressive Web App to track Chennai MTC buses in real-time on a map and in a filterable table. Provides live location, route information, and allows for custom data reporting.",
+  "requestFramePermissions": []
+}
