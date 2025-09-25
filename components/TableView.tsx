@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from 'react';
 import { BusData, SortConfig, TableColumn, StatusFilter, FleetFilter, SeriesFilter } from '../types';
 import { useTranslation } from '../context/LanguageContext';
@@ -50,7 +49,8 @@ const exportToCSV = (buses: BusData[], columns: TableColumn[]) => {
     }
 };
 
-const StatCard: React.FC<{ title: string; value: number | string; icon: JSX.Element; colorClass: string }> = ({ title, value, icon, colorClass }) => (
+// Fix: Changed JSX.Element to React.ReactElement to resolve namespace error on line 53.
+const StatCard: React.FC<{ title: string; value: number | string; icon: React.ReactElement; colorClass: string }> = ({ title, value, icon, colorClass }) => (
     <div className={`bg-white p-4 rounded-lg shadow-md flex items-center space-x-4 border-l-4 ${colorClass}`}>
         <div className={`p-3 rounded-full bg-opacity-20 ${colorClass.replace('border', 'bg').replace('-500', '-100').replace('-gray', '-gray-200')}`}>
              {icon}

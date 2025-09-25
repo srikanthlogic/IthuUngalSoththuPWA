@@ -1,3 +1,4 @@
+import React from 'react';
 
 export interface BusData {
     id: string;
@@ -45,7 +46,8 @@ export enum View {
     Home,
     Dashboard,
     Fleet,
-    Routes
+    Routes,
+    About
 }
 
 export interface SortConfig {
@@ -76,7 +78,8 @@ export interface RouteInfo {
 export interface TableColumn {
     key: keyof BusData;
     header: string;
-    render?: (value: any, row: BusData) => string | JSX.Element;
+    // Fix: Changed JSX.Element to React.ReactElement to resolve namespace error on line 80.
+    render?: (value: any, row: BusData) => string | React.ReactElement;
 }
 
 export type StatusFilter = 'all' | 'running' | 'ranToday' | 'idleOver7d' | 'idleOver30d' | 'scrapped';

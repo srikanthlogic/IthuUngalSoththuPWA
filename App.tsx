@@ -10,6 +10,7 @@ import { useTranslation } from './context/LanguageContext';
 import { getBusData } from './services/apiService';
 import Sidebar from './components/Sidebar';
 import HomePage from './components/HomePage';
+import AboutPage from './components/AboutPage';
 
 
 const REFRESH_INTERVAL = 30000; // 30 seconds
@@ -320,6 +321,7 @@ const App: React.FC = () => {
         [View.Dashboard]: t('navDashboard'),
         [View.Fleet]: t('navFleet'),
         [View.Routes]: t('navRoutes'),
+        [View.About]: t('aboutTitle'),
     };
 
     return (
@@ -387,6 +389,9 @@ const App: React.FC = () => {
                     </div>
                     <div className={`${view === View.Routes ? 'block' : 'hidden'} h-full w-full`}>
                         <RoutesView data={routesData} />
+                    </div>
+                    <div className={`${view === View.About ? 'block' : 'hidden'} h-full w-full`}>
+                        <AboutPage stats={dashboardStats} />
                     </div>
                 </main>
 

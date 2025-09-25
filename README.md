@@ -1,3 +1,4 @@
+
 # Chennai MTC Public Fleet Tracker
 
 **#IthuUngalSoththu (#ThisIsYourProperty)**
@@ -24,9 +25,18 @@ According to MTC's official (undated) data, their fleet numbers are significantl
 | Official Fleet        | 3,810           | -                   |
 | Scheduled Services    | 3,420           | -                   |
 | Total Buses in Feed   | -               | ~3600+             |
-| Actively Tracked      | -               | Often 2,500       |
+| Actively Tracked      | -               | Often < 2,500       |
 
 This significant gap between the officially declared fleet and the number of buses actually running is why public oversight is crucial. The 'Total on App' figure includes every bus ID ever broadcasted by MTC's live feed, which often includes buses that are idle for months or are potentially scrapped but not formally retired from the system.
+
+### The Crew Discrepancy
+
+The 2023-24 annual report of MTC mentions **2,447,403 trip losses** due to a "want of crew". However, this raises questions about resource allocation:
+
+*   Operating ~2,500 buses daily requires approximately **10,000 crew members** (based on 2 shifts per day, 2 crew per bus).
+*   Even when accounting for additional night services, this number does not align with the **~19,000 crew members** reportedly employed by MTC.
+
+This discrepancy between reported crew shortages and the number of staff required for the active fleet suggests a deeper issue in operational management and transparency.
 
 ## Data Source
 
