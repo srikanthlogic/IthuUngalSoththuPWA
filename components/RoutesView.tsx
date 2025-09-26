@@ -1,6 +1,9 @@
-import React, { useState, useMemo } from 'react';
+
+import React, { useState, useMemo, useEffect } from 'react';
 import { RouteInfo, FleetBreakdown } from '../types';
 import { useTranslation } from '../context/LanguageContext';
+import Pagination from './Pagination';
+import TooltipIcon from './TooltipIcon';
 
 type SortKey = keyof Omit<RouteInfo, 'fleet' | 'destinations' | 'runningBuses' | 'ranTodayWithoutTracking' | 'scrappedBuses'> | 'totalRunning' | 'totalRanToday' | 'utilization' | 'totalIdle' | 'totalScrapped' | 'elfac' | 'elf' | 'lf' | 'other';
 
@@ -19,12 +22,12 @@ const exportRoutesToCSV = (routes: RouteInfo[], t: (key: string) => string) => {
     if (routes.length === 0) return;
     const headers = [
         t('routesColRoute'), t('routesColDestinations'), t('routesColTotal'), 
-        `${t('routesColRunning')} ${t('routesColELFAC')}`, `${t('routesColRunning')} ${t('routesColELF')}`, `${t('routesColRunning')} ${t('routesColLF')}`, `${t('routesColRunning')} ${t('routesColOther')}`, `${t('routesColRunning')} Total`,
-        `${t('routesColRanToday')} ${t('routesColELFAC')}`, `${t('routesColRanToday')} ${t('routesColELF')}`, `${t('routesColRanToday')} ${t('routesColLF')}`, `${t('routesColRanToday')} ${t('routesColOther')}`, `${t('routesColRanToday')} Total`,
-        `${t('routesColScrapped')} ${t('routesColELFAC')}`, `${t('routesColScrapped')} ${t('routesColELF')}`, `${t('routesColScrapped')} ${t('routesColLF')}`, `${t('routesColScrapped')} ${t('routesColOther')}`, `${t('routesColScrapped')} Total`,
+        `${t('routesColRunning')} ${t('routesColELFAC')}`, `${t('routesColRunning')} ${t('routesColELF')}`, `${t('routesColRunning')} ${t('routesColDieselLF')}`, `${t('routesColRunning')} ${t('routesColOther')}`, `${t('routesColRunning')} Total`,
+        `${t('routesColRanToday')} ${t('routesColELFAC')}`, `${t('routesColRanToday')} ${t('routesColELF')}`, `${t('routesColRanToday')} ${t('routesColDieselLF')}`, `${t('routesColRanToday')} ${t('routesColOther')}`, `${t('routesColRanToday')} Total`,
+        `${t('routesColScrapped')} ${t('routesColELFAC')}`, `${t('routesColScrapped')} ${t('routesColELF')}`, `${t('routesColScrapped')} ${t('routesColDieselLF')}`, `${t('routesColScrapped')} ${t('routesColOther')}`, `${t('routesColScrapped')} Total`,
         'Utilization (%)',
         `${t('routesHeaderIdleStatus')} <7d`, `${t('routesHeaderIdleStatus')} 7-30d`, `${t('routesHeaderIdleStatus')} >30d`, `${t('routesHeaderIdleStatus')} Total`,
-        `${t('routesHeaderTotalFleet')} ${t('routesColELFAC')}`, `${t('routesHeaderTotalFleet')} ${t('routesColELF')}`, `${t('routesHeaderTotalFleet')} ${t('routesColLF')}`, `${t('routesHeaderTotalFleet')} ${t('routesColOther')}`
+        `${t('routesHeaderTotalFleet')} ${t('routesColELFAC')}`, `${t('routesHeaderTotalFleet')} ${t('routesColELF')}`, `${t('routesHeaderTotalFleet')} ${t('routesColDieselLF')}`, `${t('routesHeaderTotalFleet')} ${t('routesColOther')}`
     ];
     const headerRow = headers.join(',') + '\n';
     const rows = routes.map(route => {
@@ -75,7 +78,7 @@ const FleetCountDisplay: React.FC<{ counts: FleetBreakdown; type?: 'normal' | 's
         <div className="flex items-center justify-center space-x-2 text-xs">
             <span title={t('fleetELFAC')} className={`font-semibold px-2 py-0.5 rounded-full ${colorClasses.elfac}`}>{counts.elfac}</span>
             <span title={t('fleetELF')} className={`font-semibold px-2 py-0.5 rounded-full ${colorClasses.elf}`}>{counts.elf}</span>
-            <span title={t('fleetLF')} className={`font-semibold px-2 py-0.5 rounded-full ${colorClasses.lf}`}>{counts.lf}</span>
+            <span title={t('fleetDieselLF')} className={`font-semibold px-2 py-0.5 rounded-full ${colorClasses.lf}`}>{counts.lf}</span>
             <span title={t('fleetOther')} className={`font-semibold px-2 py-0.5 rounded-full ${colorClasses.other}`}>{counts.other}</span>
         </div>
     );
@@ -96,10 +99,12 @@ const UtilizationBar: React.FC<{ total: number, active: number }> = ({ total, ac
     );
 };
 
+const ROWS_PER_PAGE = 50;
 
 const RoutesView: React.FC<RoutesViewProps> = ({ data }) => {
     const [filterValue, setFilterValue] = useState('');
     const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'totalRunning', direction: 'descending' });
+    const [currentPage, setCurrentPage] = useState(1);
     const { t } = useTranslation();
 
     const filteredData = useMemo(() => {
@@ -110,6 +115,11 @@ const RoutesView: React.FC<RoutesViewProps> = ({ data }) => {
             route.destinations.some(d => d.toLowerCase().includes(lowercasedFilter))
         );
     }, [data, filterValue]);
+
+    // Reset page when filter or sort changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filteredData, sortConfig]);
 
     const sortedData = useMemo(() => {
         let sortableItems = [...filteredData];
@@ -126,7 +136,7 @@ const RoutesView: React.FC<RoutesViewProps> = ({ data }) => {
                         case 'totalScrapped': return sumFleet(route.scrappedBuses);
                         case 'utilization': 
                             const totalActive = sumFleet(route.runningBuses) + sumFleet(route.ranTodayWithoutTracking);
-                            return route.totalBuses > 0 ? totalActive / route.totalBuses : 0;
+                            return route.totalBuses - totalActive;
                         case 'totalIdle': return route.notRunLessThan7Days + route.notRun7to30Days + route.notRunMoreThan30Days;
                         case 'elfac': case 'elf': case 'lf': case 'other': return route.fleet[sortKey];
                         default: return route[sortKey as keyof Omit<RouteInfo, 'fleet' | 'destinations' | 'runningBuses' | 'ranTodayWithoutTracking' | 'scrappedBuses'>];
@@ -143,6 +153,14 @@ const RoutesView: React.FC<RoutesViewProps> = ({ data }) => {
         }
         return sortableItems;
     }, [filteredData, sortConfig]);
+    
+    const paginatedData = useMemo(() => {
+        const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
+        const endIndex = startIndex + ROWS_PER_PAGE;
+        return sortedData.slice(startIndex, endIndex);
+    }, [sortedData, currentPage]);
+    
+    const totalPages = Math.ceil(sortedData.length / ROWS_PER_PAGE);
 
     const handleSort = (key: SortKey) => {
         let direction: 'ascending' | 'descending' = 'ascending';
@@ -194,7 +212,7 @@ const RoutesView: React.FC<RoutesViewProps> = ({ data }) => {
                             <th className={`${thClass} w-1/4`}>{t('routesColDestinations')}</th>
                             <th onClick={() => handleSort('totalRunning')} className={thClass}><div className="flex items-center"><span>{t('routesColRunning')}</span><span className="ml-1 w-4">{renderSortArrow('totalRunning')}</span></div></th>
                             <th onClick={() => handleSort('totalRanToday')} className={thClass}><div className="flex items-center"><span>{t('routesColRanToday')}</span><span className="ml-1 w-4">{renderSortArrow('totalRanToday')}</span></div></th>
-                             <th onClick={() => handleSort('totalScrapped')} className={thClass}><div className="flex items-center"><span>{t('routesColScrapped')}</span><span className="ml-1 w-4">{renderSortArrow('totalScrapped')}</span></div></th>
+                             <th onClick={() => handleSort('totalScrapped')} className={thClass}><div className="flex items-center"><span>{t('routesColScrapped')}</span><TooltipIcon tooltipText={t('deemedScrappedTooltip')} /><span className="ml-1 w-4">{renderSortArrow('totalScrapped')}</span></div></th>
                             <th onClick={() => handleSort('totalBuses')} className={thClass}><div className="flex items-center"><span>{t('routesColTotal')}</span><span className="ml-1 w-4">{renderSortArrow('totalBuses')}</span></div></th>
                             <th onClick={() => handleSort('utilization')} className={thClass}><div className="flex items-center"><span>{t('routesColActiveTotal')}</span><span className="ml-1 w-4">{renderSortArrow('utilization')}</span></div></th>
                             <th onClick={() => handleSort('notRunLessThan7Days')} className={thClass}><div className="flex items-center justify-center"><span>{t('routesColIdle7d')}</span><span className="ml-1 w-4">{renderSortArrow('notRunLessThan7Days')}</span></div></th>
@@ -202,12 +220,12 @@ const RoutesView: React.FC<RoutesViewProps> = ({ data }) => {
                             <th onClick={() => handleSort('notRunMoreThan30Days')} className={thClass}><div className="flex items-center justify-center"><span>{t('routesColIdle30d')}</span><span className="ml-1 w-4">{renderSortArrow('notRunMoreThan30Days')}</span></div></th>
                             <th onClick={() => handleSort('elfac')} className={thClass}><div className="flex items-center"><span>{t('routesColELFAC')}</span><span className="ml-1 w-4">{renderSortArrow('elfac')}</span></div></th>
                             <th onClick={() => handleSort('elf')} className={thClass}><div className="flex items-center"><span>{t('routesColELF')}</span><span className="ml-1 w-4">{renderSortArrow('elf')}</span></div></th>
-                            <th onClick={() => handleSort('lf')} className={thClass}><div className="flex items-center"><span>{t('routesColLF')}</span><span className="ml-1 w-4">{renderSortArrow('lf')}</span></div></th>
+                            <th onClick={() => handleSort('lf')} className={thClass}><div className="flex items-center"><span>{t('routesColDieselLF')}</span><span className="ml-1 w-4">{renderSortArrow('lf')}</span></div></th>
                             <th onClick={() => handleSort('other')} className={thClass}><div className="flex items-center"><span>{t('routesColOther')}</span><span className="ml-1 w-4">{renderSortArrow('other')}</span></div></th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {sortedData.length > 0 ? sortedData.map(route => {
+                        {paginatedData.length > 0 ? paginatedData.map(route => {
                             const totalRunning = sumFleet(route.runningBuses);
                             const totalRanToday = sumFleet(route.ranTodayWithoutTracking);
                             const totalActive = totalRunning + totalRanToday;
@@ -242,6 +260,15 @@ const RoutesView: React.FC<RoutesViewProps> = ({ data }) => {
                         )}
                     </tbody>
                 </table>
+            </div>
+            
+            {/* Pagination Controls */}
+            <div className="flex-shrink-0">
+                 <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                />
             </div>
         </div>
     );

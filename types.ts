@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 
 export interface BusData {
@@ -30,12 +32,20 @@ export interface FleetStatusBreakdown {
 
 export interface DashboardStats {
     total: number;
+    totalMTC: number;
+    totalSwitch: number;
     running: number;
     ranTodayWithoutTracking: number;
+    trackedTodayMTC: number;
+    trackedTodaySwitch: number;
     notRunLessThan7Days: number;
     notRun7to30Days: number;
     notRunMoreThan30Days: number;
+    idleMTC: number;
+    idleSwitch: number;
     scrapped: number;
+    scrappedMTC: number;
+    scrappedSwitch: number;
     elfac: FleetStatusBreakdown;
     elf: FleetStatusBreakdown;
     lf: FleetStatusBreakdown;
@@ -78,10 +88,55 @@ export interface RouteInfo {
 export interface TableColumn {
     key: keyof BusData;
     header: string;
-    // Fix: Changed JSX.Element to React.ReactElement to resolve namespace error on line 80.
     render?: (value: any, row: BusData) => string | React.ReactElement;
 }
 
-export type StatusFilter = 'all' | 'running' | 'ranToday' | 'idleOver7d' | 'idleOver30d' | 'scrapped';
-export type FleetFilter = 'all' | 'lf' | 'elf' | 'elfac' | 'other';
-export type SeriesFilter = 'all' | 'h' | 'i' | 'j' | 'k' | 'c';
+export type StatusFilter = string[];
+export type FleetFilter = string[];
+export type SeriesFilter = string[];
+export type AgencyFilter = string[];
+
+// Agency Configuration Types
+export interface FilterLogic {
+    type: 'startsWith' | 'endsWith' | 'not' | 'or';
+    match?: string;
+    conditions?: FilterLogic[];
+}
+
+export interface FilterOption {
+    value: string;
+    labelKey: string;
+    logic?: FilterLogic;
+}
+
+export interface FilterConfig {
+    id: 'fleet' | 'agency' | 'series';
+    labelKey: string;
+    colorClass: string;
+    filterKey: keyof BusData;
+    options: FilterOption[];
+}
+
+export interface RenderConfig {
+    type: 'datetime' | 'derived';
+    sourceKey?: keyof BusData;
+    logic?: FilterLogic;
+    valueIfTrueKey?: string;
+    valueIfFalseKey?: string;
+}
+
+export interface TableColumnConfig {
+    key: keyof BusData;
+    headerKey: string;
+    render?: RenderConfig;
+}
+
+export interface AgencyConfig {
+    agencyId: string;
+    agencyName: string;
+    appName: string;
+    appHashtag: string;
+    deemedScrappedDays?: number;
+    filters: FilterConfig[];
+    tableColumns: TableColumnConfig[];
+}

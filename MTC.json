@@ -1,0 +1,84 @@
+
+{
+  "agencyId": "MTC",
+  "agencyName": "Metropolitan Transport Corporation",
+  "appName": "Chennai MTC Live Tracker",
+  "appHashtag": "#IthuUngalSoththu",
+  "deemedScrappedDays": 60,
+  "filters": [
+    {
+      "id": "fleet",
+      "labelKey": "fleetFiltersLabel",
+      "colorClass": "bg-red-600",
+      "filterKey": "id",
+      "options": [
+        { "value": "all", "labelKey": "fleetFilterAll" },
+        { "value": "lf", "labelKey": "fleetLF", "logic": { "type": "or", "conditions": [
+            { "type": "endsWith", "match": "LF" },
+            { "type": "endsWith", "match": "ELF" },
+            { "type": "endsWith", "match": "ELFAC" }
+        ] } },
+        { "value": "elf", "labelKey": "fleetELF", "logic": { "type": "endsWith", "match": "ELF" } },
+        { "value": "elfac", "labelKey": "fleetELFAC", "logic": { "type": "endsWith", "match": "ELFAC" } },
+        { "value": "other", "labelKey": "fleetOther", "logic": { "type": "not", "conditions": [
+            { "type": "endsWith", "match": "LF" },
+            { "type": "endsWith", "match": "ELF" },
+            { "type": "endsWith", "match": "ELFAC" }
+        ] } }
+      ]
+    },
+    {
+      "id": "agency",
+      "labelKey": "agencyFiltersLabel",
+      "colorClass": "bg-purple-600",
+      "filterKey": "id",
+      "options": [
+        { "value": "all", "labelKey": "agencyFilterAll" },
+        { "value": "mtc", "labelKey": "agencyFilterMTC", "logic": { "type": "not", "conditions": [
+            { "type": "endsWith", "match": "ELFAC" },
+            { "type": "endsWith", "match": "ELF" }
+        ] } },
+        { "value": "switch", "labelKey": "agencyFilterSwitch", "logic": { "type": "or", "conditions": [
+            { "type": "endsWith", "match": "ELFAC" },
+            { "type": "endsWith", "match": "ELF" }
+        ] } }
+      ]
+    },
+    {
+      "id": "series",
+      "labelKey": "seriesFiltersLabel",
+      "colorClass": "bg-blue-600",
+      "filterKey": "id",
+      "options": [
+        { "value": "all", "labelKey": "seriesFilterAll" },
+        { "value": "i", "labelKey": "seriesFilterI", "logic": { "type": "startsWith", "match": "I" } },
+        { "value": "j", "labelKey": "seriesFilterJ", "logic": { "type": "startsWith", "match": "J" } },
+        { "value": "k", "labelKey": "seriesFilterK", "logic": { "type": "startsWith", "match": "K" } },
+        { "value": "other", "labelKey": "seriesFilterOther", "logic": { "type": "not", "conditions": [
+            { "type": "startsWith", "match": "I" },
+            { "type": "startsWith", "match": "J" },
+            { "type": "startsWith", "match": "K" }
+        ] } }
+      ]
+    }
+  ],
+  "tableColumns": [
+    { "key": "id", "headerKey": "tableColVehicleID" },
+    { "key": "route_short_name", "headerKey": "tableColRoute" },
+    { "key": "trip_headsign", "headerKey": "tableColDestination" },
+    { "key": "lastSeenTimestamp", "headerKey": "tableColLastUpdate", "render": { "type": "datetime" } },
+    { "key": "agency_name", "headerKey": "tableColAgency", "render": { 
+        "type": "derived", 
+        "sourceKey": "id",
+        "logic": {
+            "type": "or", "conditions": [
+                { "type": "endsWith", "match": "ELFAC" },
+                { "type": "endsWith", "match": "ELF" }
+            ]
+        },
+        "valueIfTrueKey": "agencySwitch",
+        "valueIfFalseKey": "agencyMTC"
+      } 
+    }
+  ]
+}

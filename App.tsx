@@ -1,6 +1,7 @@
 
+
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { BusData, View, SortConfig, DashboardStats, RouteInfo, TableColumn, StatusFilter, FleetFilter, SeriesFilter } from './types';
+import { BusData, View, SortConfig, DashboardStats, RouteInfo, TableColumn, StatusFilter, FleetFilter, SeriesFilter, AgencyFilter, AgencyConfig, FilterLogic } from './types';
 import MapView from './components/MapView';
 import FleetView from './components/TableView';
 import RoutesView from './components/RoutesView';
@@ -11,6 +12,7 @@ import { getBusData } from './services/apiService';
 import Sidebar from './components/Sidebar';
 import HomePage from './components/HomePage';
 import AboutPage from './components/AboutPage';
+import TooltipIcon from './components/TooltipIcon';
 
 
 const REFRESH_INTERVAL = 30000; // 30 seconds
@@ -25,18 +27,41 @@ interface BusStatusCounts {
 
 const initialDashboardStats: DashboardStats = {
     total: 0,
+    totalMTC: 0,
+    totalSwitch: 0,
     running: 0,
     ranTodayWithoutTracking: 0,
+    trackedTodayMTC: 0,
+    trackedTodaySwitch: 0,
     notRunLessThan7Days: 0,
     notRun7to30Days: 0,
     notRunMoreThan30Days: 0,
+    idleMTC: 0,
+    idleSwitch: 0,
     scrapped: 0,
+    scrappedMTC: 0,
+    scrappedSwitch: 0,
     elfac: { total: 0, running: 0, ranTodayWithoutTracking: 0, notRunLessThan7Days: 0, notRun7to30Days: 0, notRunMoreThan30Days: 0, scrapped: 0 },
     elf: { total: 0, running: 0, ranTodayWithoutTracking: 0, notRunLessThan7Days: 0, notRun7to30Days: 0, notRunMoreThan30Days: 0, scrapped: 0 },
     lf: { total: 0, running: 0, ranTodayWithoutTracking: 0, notRunLessThan7Days: 0, notRun7to30Days: 0, notRunMoreThan30Days: 0, scrapped: 0 },
     other: { total: 0, running: 0, ranTodayWithoutTracking: 0, notRunLessThan7Days: 0, notRun7to30Days: 0, notRunMoreThan30Days: 0, scrapped: 0 },
 };
 
+const checkFilterLogic = (busValue: string, logic: FilterLogic): boolean => {
+    if (!busValue) return false;
+    switch (logic.type) {
+        case 'startsWith':
+            return busValue.startsWith(logic.match as string);
+        case 'endsWith':
+            return busValue.endsWith(logic.match as string);
+        case 'or':
+            return logic.conditions!.some(cond => checkFilterLogic(busValue, cond));
+        case 'not':
+            return !logic.conditions!.some(cond => checkFilterLogic(busValue, cond));
+        default:
+            return true;
+    }
+};
 
 const App: React.FC = () => {
     const [allBuses, setAllBuses] = useState<BusData[]>([]);
@@ -47,29 +72,49 @@ const App: React.FC = () => {
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
     const [statusCounts, setStatusCounts] = useState<BusStatusCounts>({ total: 0, running: 0, ranTodayWithoutTracking: 0, idle: 0, scrapped: 0 });
     const [dashboardStats, setDashboardStats] = useState<DashboardStats>(initialDashboardStats);
+    const [agencyConfig, setAgencyConfig] = useState<AgencyConfig | null>(null);
 
     const [filterKey, setFilterKey] = useState<string>('all');
     const [filterValue, setFilterValue] = useState<string>('');
     const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'route_short_name', direction: 'ascending' });
-    const [statusFilter, setStatusFilter] = useState<StatusFilter>('running');
-    const [fleetFilter, setFleetFilter] = useState<FleetFilter>('all');
-    const [seriesFilter, setSeriesFilter] = useState<SeriesFilter>('all');
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>(['running']);
+    const [fleetFilter, setFleetFilter] = useState<FleetFilter>(['all']);
+    const [seriesFilter, setSeriesFilter] = useState<SeriesFilter>(['all']);
+    const [agencyFilter, setAgencyFilter] = useState<AgencyFilter>(['all']);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [scrappedDate, setScrappedDate] = useState<Date>(() => {
-        const d = new Date();
-        d.setDate(d.getDate() - 30);
-        d.setHours(0, 0, 0, 0);
-        return d;
-    });
+    const [isAutoRefreshPaused, setIsAutoRefreshPaused] = useState<boolean>(false);
+    const [scrappedDate, setScrappedDate] = useState<Date | null>(null);
     
     const isFetching = useRef(false);
     const { t } = useTranslation();
 
+    useEffect(() => {
+        const fetchConfig = async () => {
+            try {
+                const response = await fetch('/MTC.json');
+                const config: AgencyConfig = await response.json();
+                
+                const days = config.deemedScrappedDays || 30; // Default to 30 if not in config
+                const d = new Date();
+                d.setDate(d.getDate() - days);
+                d.setHours(0, 0, 0, 0);
+                setScrappedDate(d);
+                
+                setAgencyConfig(config);
+                document.title = config.appName;
+            } catch (err) {
+                console.error("Failed to load agency configuration:", err);
+                setError("Failed to load agency configuration.");
+            }
+        };
+        fetchConfig();
+    }, []);
+
     const fetchBusData = useCallback(async () => {
-        if (isFetching.current) return;
+        if (isFetching.current || !scrappedDate) return;
         isFetching.current = true;
         setLoading(true);
-        setError(null);
+setError(null);
 
         try {
             const allBusesFromApi: BusData[] = await getBusData();
@@ -89,6 +134,11 @@ const App: React.FC = () => {
             
             const routesMap = new Map<string, RouteInfo>();
             const emptyFleetBreakdown = (): any => ({ elfac: 0, elf: 0, lf: 0, other: 0 });
+            
+            let totalMTC = 0, totalSwitch = 0;
+            let trackedTodayMTC = 0, trackedTodaySwitch = 0;
+            let idleMTC = 0, idleSwitch = 0;
+            let scrappedMTC = 0, scrappedSwitch = 0;
 
             allBusesFromApi.forEach(bus => {
                 let fleetTypeKey: keyof typeof breakdown;
@@ -121,18 +171,33 @@ const App: React.FC = () => {
                 }
                 routeInfo.fleet[fleetTypeKey]++;
 
+                const isSwitch = bus.id.endsWith('ELFAC') || bus.id.endsWith('ELF');
+                if (isSwitch) totalSwitch++; else totalMTC++;
+
                 const lastSeen = bus.lastSeenTimestamp;
                 const isScrappedByDate = lastSeen ? lastSeen < scrappedTimestamp : false;
-                
-                if (bus.sId && String(bus.sId).trim() !== '') { // Running
+                const isRunning = bus.sId && String(bus.sId).trim() !== '';
+                const ranToday = !isRunning && lastSeen && lastSeen >= todayStart;
+
+                if (isRunning || ranToday) {
+                    if (isSwitch) trackedTodaySwitch++; else trackedTodayMTC++;
+                }
+
+                if (isRunning) { // Running
                     breakdown[fleetTypeKey].running++;
                     routeInfo.runningBuses[fleetTypeKey]++;
                 } else { // Not Running
                     if (isScrappedByDate) { // Scrapped by date
                         breakdown[fleetTypeKey].scrapped++;
                         routeInfo.scrappedBuses[fleetTypeKey]++;
+                        if (isSwitch) scrappedSwitch++; else scrappedMTC++;
                     } else { // Active Idle
-                        if (lastSeen && lastSeen >= todayStart) {
+                        const isIdle = !ranToday;
+                        if (isIdle) {
+                             if (isSwitch) idleSwitch++; else idleMTC++;
+                        }
+                        
+                        if (ranToday) {
                             breakdown[fleetTypeKey].ranTodayWithoutTracking++;
                             routeInfo.ranTodayWithoutTracking[fleetTypeKey]++;
                         } else if (lastSeen && lastSeen >= sevenDaysAgo) {
@@ -165,12 +230,20 @@ const App: React.FC = () => {
 
             setDashboardStats({
                 total,
+                totalMTC,
+                totalSwitch,
                 running: totalRunning,
                 ranTodayWithoutTracking: totalRanToday,
+                trackedTodayMTC,
+                trackedTodaySwitch,
                 notRunLessThan7Days: totalNotRunLessThan7Days,
                 notRun7to30Days: totalNotRun7to30Days,
                 notRunMoreThan30Days: totalNotRunMoreThan30Days,
+                idleMTC,
+                idleSwitch,
                 scrapped: totalScrapped,
+                scrappedMTC,
+                scrappedSwitch,
                 elfac: breakdown.elfac,
                 elf: breakdown.elf,
                 lf: breakdown.lf,
@@ -199,66 +272,86 @@ const App: React.FC = () => {
     }, [t, scrappedDate]);
 
     useEffect(() => {
+        if (isAutoRefreshPaused || !scrappedDate) {
+            return; // Do nothing if paused or config not loaded
+        }
+    
         fetchBusData();
         const intervalId = setInterval(fetchBusData, REFRESH_INTERVAL);
-        return () => clearInterval(intervalId);
-    }, [fetchBusData]);
+        return () => clearInterval(intervalId); // Cleanup interval
+    }, [fetchBusData, isAutoRefreshPaused, scrappedDate]);
 
     const busesForTable = useMemo(() => {
+        if (!scrappedDate) return [];
+
         const todayStart = new Date().setHours(0, 0, 0, 0);
         const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
         const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
         const scrappedTimestamp = new Date(scrappedDate).setHours(0, 0, 0, 0);
 
-        return allBuses
-            .filter(bus => { // Status filter
+        let filtered = allBuses
+            .filter(bus => { // Status filter (generic)
+                if (statusFilter.includes('all') || statusFilter.length === 0) {
+                    return true;
+                }
                 const lastSeen = bus.lastSeenTimestamp;
                 const isScrappedByDate = lastSeen ? lastSeen < scrappedTimestamp : false;
                 const isRunning = bus.sId && String(bus.sId).trim() !== '';
 
-                switch (statusFilter) {
-                    case 'running':
-                        return !isScrappedByDate && isRunning;
-                    case 'ranToday':
-                        return !isScrappedByDate && !isRunning && 
-                               lastSeen && lastSeen >= todayStart;
-                    case 'idleOver7d':
-                        return !isScrappedByDate && !isRunning &&
-                               lastSeen && lastSeen < sevenDaysAgo;
-                    case 'idleOver30d':
-                         return !isScrappedByDate && !isRunning &&
-                               lastSeen && lastSeen < thirtyDaysAgo;
-                    case 'scrapped':
-                        return !isRunning && isScrappedByDate;
-                    case 'all':
-                    default:
-                        return true;
-                }
-            })
-            .filter(bus => { // Fleet type filter
-                if (fleetFilter === 'all') return true;
-                switch (fleetFilter) {
-                    case 'lf': return bus.id.endsWith('LF');
-                    case 'elf': return bus.id.endsWith('ELF');
-                    case 'elfac': return bus.id.endsWith('ELFAC');
-                    case 'other': return !bus.id.endsWith('LF') && !bus.id.endsWith('ELF') && !bus.id.endsWith('ELFAC');
-                    default: return true;
-                }
-            })
-            .filter(bus => { // Series filter
-                if (seriesFilter === 'all') return true;
-                if (!bus.id || bus.id.length < 1) return false;
-                const seriesChar = bus.id.charAt(0).toUpperCase();
-                switch (seriesFilter) {
-                    case 'h': return seriesChar === 'H';
-                    case 'i': return seriesChar === 'I';
-                    case 'j': return seriesChar === 'J';
-                    case 'k': return seriesChar === 'K';
-                    case 'c': return seriesChar === 'C';
-                }
-                return false;
+                // A bus passes if it matches ANY of the selected statuses (OR condition)
+                return statusFilter.some(filter => {
+                    switch (filter) {
+                        case 'running':
+                            return !isScrappedByDate && isRunning;
+                        case 'ranToday':
+                            return !isScrappedByDate && !isRunning && 
+                                   lastSeen && lastSeen >= todayStart;
+                        case 'idleOver7d':
+                            return !isScrappedByDate && !isRunning &&
+                                   lastSeen && lastSeen < sevenDaysAgo;
+                        case 'idleOver30d':
+                             return !isScrappedByDate && !isRunning &&
+                                   lastSeen && lastSeen < thirtyDaysAgo;
+                        case 'scrapped':
+                            return !isRunning && isScrappedByDate;
+                        default:
+                            return false;
+                    }
+                });
             });
-    }, [allBuses, statusFilter, fleetFilter, seriesFilter, scrappedDate]);
+
+        if (agencyConfig) {
+            const activeFilters = [
+                { id: 'fleet', value: fleetFilter },
+                { id: 'agency', value: agencyFilter },
+                { id: 'series', value: seriesFilter },
+            ];
+            
+            activeFilters.forEach(filterInfo => {
+                const selectedValues = filterInfo.value;
+                if (selectedValues.length > 0 && !selectedValues.includes('all')) {
+                    const filterConfig = agencyConfig.filters.find(f => f.id === filterInfo.id);
+                    if (filterConfig) {
+                        const selectedOptionsWithLogic = filterConfig.options
+                            .filter(o => selectedValues.includes(o.value) && o.logic);
+
+                        if (selectedOptionsWithLogic.length > 0) {
+                            filtered = filtered.filter(bus => {
+                                const busValue = bus[filterConfig.filterKey as keyof BusData];
+                                // Bus passes if it matches ANY of the selected filter logics (OR condition)
+                                return selectedOptionsWithLogic.some(option => 
+                                    checkFilterLogic(String(busValue), option.logic!)
+                                );
+                            });
+                        }
+                    }
+                }
+            });
+        }
+        
+        return filtered;
+            
+    }, [allBuses, statusFilter, fleetFilter, seriesFilter, agencyFilter, scrappedDate, agencyConfig]);
 
     const filteredBuses = useMemo(() => {
         if (!filterValue) return busesForTable;
@@ -299,22 +392,30 @@ const App: React.FC = () => {
         setSortConfig({ key, direction });
     };
     
-    const tableColumns = useMemo((): TableColumn[] => [
-        { key: 'id', header: t('tableColVehicleID') },
-        { key: 'route_short_name', header: t('tableColRoute') },
-        { key: 'trip_headsign', header: t('tableColDestination') },
-        { key: 'lastSeenTimestamp', header: t('tableColLastUpdate'), render: (ts) => ts ? new Date(ts).toLocaleString() : '-' },
-        { 
-            key: 'agency_name', 
-            header: t('tableColAgency'), 
-            render: (_value, bus) => {
-                if (bus.id.endsWith('ELFAC') || bus.id.endsWith('ELF')) {
-                    return 'Switch Mobility';
+    const tableColumns = useMemo((): TableColumn[] => {
+        if (!agencyConfig) return [];
+
+        return agencyConfig.tableColumns.map(colConfig => ({
+            key: colConfig.key,
+            header: t(colConfig.headerKey),
+            render: (value: any, bus: BusData) => {
+                if (colConfig.render) {
+                    switch (colConfig.render.type) {
+                        case 'datetime':
+                            return value ? new Date(value).toLocaleString() : '-';
+                        case 'derived':
+                            const sourceValue = bus[colConfig.render.sourceKey!];
+                            const conditionMet = checkFilterLogic(String(sourceValue), colConfig.render.logic!);
+                            const translationKey = conditionMet ? colConfig.render.valueIfTrueKey! : colConfig.render.valueIfFalseKey!;
+                            return t(translationKey);
+                        default:
+                            return String(value ?? '-');
+                    }
                 }
-                return 'MTC';
+                return String(value ?? '-');
             }
-        }
-    ], [t]);
+        }));
+    }, [t, agencyConfig]);
 
     const viewTitles: { [key in View]: string } = {
         [View.Home]: t('homeTitle'),
@@ -324,13 +425,18 @@ const App: React.FC = () => {
         [View.About]: t('aboutTitle'),
     };
 
+    if (!agencyConfig || !scrappedDate) {
+        return <Loader text={t('loaderConfig')} />;
+    }
+
     return (
         <div className="flex h-screen bg-gray-100 font-sans">
             <Sidebar 
                 currentView={view} 
                 setView={setView} 
                 isSidebarOpen={isSidebarOpen} 
-                setIsSidebarOpen={setIsSidebarOpen} 
+                setIsSidebarOpen={setIsSidebarOpen}
+                agencyConfig={agencyConfig} 
             />
             <div className="flex-1 flex flex-col overflow-hidden">
                 <header className="bg-white shadow-md z-20">
@@ -343,6 +449,17 @@ const App: React.FC = () => {
                         </div>
                         <div className="flex items-center space-x-2 sm:space-x-4">
                             <LanguageSwitcher />
+                            <button onClick={() => setIsAutoRefreshPaused(prev => !prev)} className="p-2 rounded-full hover:bg-gray-200 transition-colors" aria-label={isAutoRefreshPaused ? t('resumeAutoRefresh') : t('pauseAutoRefresh')}>
+                                {isAutoRefreshPaused ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                                    </svg>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+                                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                    </svg>
+                                )}
+                            </button>
                             <button onClick={() => fetchBusData()} disabled={loading} className="p-2 rounded-full hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Refresh Data">
                                <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 text-gray-600 ${loading ? 'animate-spin' : ''}`} viewBox="0 0 20 20" fill="currentColor">
                                  <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V4a1 1 0 011 1zm12 14a1 1 0 01-1-1v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 111.885-.666A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v4a1 1 0 01-1 1z" clipRule="evenodd" />
@@ -383,8 +500,11 @@ const App: React.FC = () => {
                             setFleetFilter={setFleetFilter}
                             seriesFilter={seriesFilter}
                             setSeriesFilter={setSeriesFilter}
+                            agencyFilter={agencyFilter}
+                            setAgencyFilter={setAgencyFilter}
                             scrappedDate={scrappedDate}
                             setScrappedDate={setScrappedDate}
+                            agencyConfig={agencyConfig}
                         />
                     </div>
                     <div className={`${view === View.Routes ? 'block' : 'hidden'} h-full w-full`}>
@@ -401,8 +521,17 @@ const App: React.FC = () => {
                         <span className="text-green-400 font-bold">{t('footerRunning')}: <span className="font-normal">{statusCounts.running}</span></span>
                         <span className="text-yellow-400 font-bold">{t('footerRanToday')}: <span className="font-normal">{statusCounts.ranTodayWithoutTracking}</span></span>
                         <span className="text-orange-400 font-bold">{t('footerIdle')}: <span className="font-normal">{statusCounts.idle}</span></span>
-                         <span className="text-gray-400 font-bold">{t('footerScrapped')}: <span className="font-normal">{statusCounts.scrapped}</span></span>
-                        <span className="col-span-2 sm:col-span-4 md:col-span-1 text-right md:text-center">{lastUpdated ? `${t('footerLastUpdated')}: ${lastUpdated.toLocaleTimeString()}` : t('footerUpdating')}</span>
+                         <span className="flex items-center justify-center text-gray-400 font-bold">
+                            {t('footerScrapped')}: 
+                            <span className="font-normal ml-1">{statusCounts.scrapped}</span>
+                            <TooltipIcon tooltipText={t('deemedScrappedTooltip')} />
+                         </span>
+                        <span className="col-span-2 sm:col-span-4 md:col-span-1 text-right md:text-center">
+                            {isAutoRefreshPaused
+                                ? <span className="text-yellow-400 font-bold animate-pulse">{t('footerPaused')}</span>
+                                : (lastUpdated ? `${t('footerLastUpdated')}: ${lastUpdated.toLocaleTimeString()}` : t('footerUpdating'))
+                            }
+                        </span>
                     </div>
                 </footer>
             </div>

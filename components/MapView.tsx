@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { DashboardStats, FleetStatusBreakdown } from '../types';
 import { useTranslation } from '../context/LanguageContext';
+import TooltipIcon from './TooltipIcon';
 
 interface MapViewProps {
     stats: DashboardStats;
@@ -9,10 +9,36 @@ interface MapViewProps {
     setScrappedDate: (date: Date) => void;
 }
 
-const StatCard: React.FC<{ title: string; value: number; colorClass: string; largeText?: boolean }> = ({ title, value, colorClass, largeText = true }) => (
+const StatCard: React.FC<{ title: string; value: number; colorClass: string; largeText?: boolean; tooltip?: React.ReactElement }> = ({ title, value, colorClass, largeText = true, tooltip }) => (
     <div className="bg-white p-4 rounded-lg shadow-md flex flex-col items-center justify-center text-center h-full">
-        <span className="text-sm font-medium text-gray-500">{title}</span>
-        <span className={`font-bold ${largeText ? 'text-3xl sm:text-4xl' : 'text-2xl sm:text-3xl'} ${colorClass}`}>{value}</span>
+        <div className="flex items-center">
+            <span className="text-sm font-medium text-gray-500">{title}</span>
+            {tooltip}
+        </div>
+        <span className={`font-bold ${largeText ? 'text-3xl sm:text-4xl' : 'text-2xl sm:text-3xl'} ${colorClass}`}>{value.toLocaleString()}</span>
+    </div>
+);
+
+const StatCardWithBreakdown: React.FC<{
+    title: string;
+    total: number;
+    breakdown: { label: string; value: number }[];
+    colorClass: string;
+    tooltip?: React.ReactElement;
+}> = ({ title, total, breakdown, colorClass, tooltip }) => (
+    <div className="bg-white p-4 rounded-lg shadow-md flex flex-col items-center justify-center text-center h-full">
+        <div className="flex items-center">
+            <span className="text-sm font-medium text-gray-500">{title}</span>
+            {tooltip}
+        </div>
+        <span className={`font-bold text-3xl sm:text-4xl ${colorClass}`}>{total.toLocaleString()}</span>
+        <div className="text-xs text-gray-500 mt-1 space-x-2">
+            {breakdown.map((item) => (
+                <span key={item.label}>
+                    {item.label}: <span className="font-semibold">{item.value.toLocaleString()}</span>
+                </span>
+            ))}
+        </div>
     </div>
 );
 
@@ -47,7 +73,10 @@ const FleetBreakdownCard: React.FC<{ title: string; stats: FleetStatusBreakdown;
                         <span className="font-semibold text-red-700 bg-red-200 px-2 py-0.5 rounded">{stats.notRunMoreThan30Days}</span>
                     </div>
                     <div className="flex justify-between items-center mt-2 pt-2 border-t">
-                        <span>{t('breakdownScrapped')}</span>
+                        <span className="flex items-center">
+                            {t('breakdownScrapped')}
+                            <TooltipIcon tooltipText={t('deemedScrappedTooltip')} />
+                        </span>
                         <span className="font-semibold text-gray-500 bg-gray-200 px-2 py-0.5 rounded">{stats.scrapped}</span>
                     </div>
                 </div>
@@ -62,6 +91,7 @@ const MapView: React.FC<MapViewProps> = ({ stats, scrappedDate, setScrappedDate 
         return null; // Or a loading state
     }
     const totalIdle = stats.notRunLessThan7Days + stats.notRun7to30Days + stats.notRunMoreThan30Days;
+    const trackedToday = stats.trackedTodayMTC + stats.trackedTodaySwitch;
 
 
     return (
@@ -86,12 +116,44 @@ const MapView: React.FC<MapViewProps> = ({ stats, scrappedDate, setScrappedDate 
                     </div>
                 </div>
                 
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                    <StatCard title={t('statTotalBuses')} value={stats.total} colorClass="text-gray-800" />
-                    <StatCard title={t('statRunning')} value={stats.running} colorClass="text-green-500" />
-                    <StatCard title={t('statRanToday')} value={stats.ranTodayWithoutTracking} colorClass="text-yellow-500" />
-                    <StatCard title={t('statIdle')} value={totalIdle} colorClass="text-orange-500"/>
-                    <StatCard title={t('statScrapped')} value={stats.scrapped} colorClass="text-gray-500" />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                     <StatCardWithBreakdown
+                        title={t('statTotalBuses')}
+                        total={stats.total}
+                        breakdown={[
+                            { label: t('agencyMTC'), value: stats.totalMTC },
+                            { label: t('agencySwitch'), value: stats.totalSwitch },
+                        ]}
+                        colorClass="text-gray-800"
+                    />
+                    <StatCardWithBreakdown
+                        title={t('homeTrackedToday')}
+                        total={trackedToday}
+                        breakdown={[
+                            { label: t('agencyMTC'), value: stats.trackedTodayMTC },
+                            { label: t('agencySwitch'), value: stats.trackedTodaySwitch },
+                        ]}
+                        colorClass="text-green-500"
+                    />
+                    <StatCardWithBreakdown
+                        title={t('statIdle')}
+                        total={totalIdle}
+                        breakdown={[
+                            { label: t('agencyMTC'), value: stats.idleMTC },
+                            { label: t('agencySwitch'), value: stats.idleSwitch },
+                        ]}
+                        colorClass="text-orange-500"
+                    />
+                    <StatCardWithBreakdown
+                        title={t('statScrapped')}
+                        total={stats.scrapped}
+                        breakdown={[
+                            { label: t('agencyMTC'), value: stats.scrappedMTC },
+                            { label: t('agencySwitch'), value: stats.scrappedSwitch },
+                        ]}
+                        colorClass="text-gray-500"
+                        tooltip={<TooltipIcon tooltipText={t('deemedScrappedTooltip')} />}
+                    />
                 </div>
                 
                 <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mt-6 mb-2">{t('statIdleBreakdown')}</h3>
@@ -105,7 +167,7 @@ const MapView: React.FC<MapViewProps> = ({ stats, scrappedDate, setScrappedDate 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <FleetBreakdownCard title={t('fleetELFAC')} stats={stats.elfac} colorClass="text-blue-500" />
                     <FleetBreakdownCard title={t('fleetELF')} stats={stats.elf} colorClass="text-teal-500" />
-                    <FleetBreakdownCard title={t('fleetLF')} stats={stats.lf} colorClass="text-indigo-500" />
+                    <FleetBreakdownCard title={t('fleetDieselLF')} stats={stats.lf} colorClass="text-indigo-500" />
                     <FleetBreakdownCard title={t('fleetOther')} stats={stats.other} colorClass="text-gray-600" />
                 </div>
             </div>

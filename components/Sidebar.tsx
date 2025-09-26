@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from '../types';
+import { View, AgencyConfig } from '../types';
 import { useTranslation } from '../context/LanguageContext';
 
 interface SidebarProps {
@@ -7,12 +7,12 @@ interface SidebarProps {
     setView: (view: View) => void;
     isSidebarOpen: boolean;
     setIsSidebarOpen: (isOpen: boolean) => void;
+    agencyConfig: AgencyConfig | null;
 }
 
 const NavItem: React.FC<{
     view: View;
     label: string;
-    // Fix: Changed JSX.Element to React.ReactElement to resolve namespace error on line 16.
     icon: React.ReactElement;
     currentView: View;
     onClick: () => void;
@@ -32,7 +32,7 @@ const NavItem: React.FC<{
     </li>
 );
 
-const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, isSidebarOpen, setIsSidebarOpen }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, isSidebarOpen, setIsSidebarOpen, agencyConfig }) => {
     const { t } = useTranslation();
 
     const handleSetView = (view: View) => {
@@ -71,8 +71,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, isSidebarOpen, 
     const sidebarContent = (
         <div className="flex flex-col h-full">
             <div className="p-4 border-b border-red-800">
-                <h1 className="text-xl font-bold text-white">{t('appTitle')}</h1>
-                <span className="text-sm font-semibold text-red-200">{t('appHashtag')}</span>
+                <h1 className="text-xl font-bold text-white">{agencyConfig?.appName ?? t('appTitle')}</h1>
+                <span className="text-sm font-semibold text-red-200">{agencyConfig?.appHashtag ?? t('appHashtag')}</span>
             </div>
             <nav className="flex-grow p-2">
                 <ul>

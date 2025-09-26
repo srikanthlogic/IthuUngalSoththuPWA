@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from '../context/LanguageContext';
 import { DashboardStats } from '../types';
 
@@ -8,9 +8,28 @@ interface HomePageProps {
 }
 
 const StatDisplay: React.FC<{ label: string; value: string | number; color: string }> = ({ label, value, color }) => (
-    <div className="bg-gray-50 p-3 rounded-lg shadow-inner text-center border-t-4" style={{ borderColor: color }}>
+    <div className="bg-gray-50 p-3 rounded-lg shadow-inner text-center border-t-4 h-full flex flex-col justify-center" style={{ borderColor: color }}>
         <p className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wider">{label}</p>
         <p className="text-2xl sm:text-3xl font-bold text-gray-800">{value}</p>
+    </div>
+);
+
+const StatDisplayWithBreakdown: React.FC<{ 
+    label: string; 
+    total: number; 
+    breakdown: { label: string; value: number }[]; 
+    color: string 
+}> = ({ label, total, breakdown, color }) => (
+    <div className="bg-gray-50 p-3 rounded-lg shadow-inner text-center border-t-4 h-full flex flex-col justify-center" style={{ borderColor: color }}>
+        <p className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wider">{label}</p>
+        <p className="text-2xl sm:text-3xl font-bold text-gray-800">{total > 0 ? total.toLocaleString() : '...'}</p>
+        <div className="text-xs text-gray-500 mt-1 space-x-2">
+            {breakdown.map((item) => (
+                <span key={item.label}>
+                    {item.label}: <span className="font-semibold">{item.value.toLocaleString()}</span>
+                </span>
+            ))}
+        </div>
     </div>
 );
 
@@ -47,8 +66,49 @@ const InfoTile: React.FC<{ title: string; children: React.ReactNode; icon: React
 );
 
 const HomePage: React.FC<HomePageProps> = ({ stats }) => {
-    const { t } = useTranslation();
+    const { t, language } = useTranslation();
     const trackedToday = stats.running + stats.ranTodayWithoutTracking;
+    const trackedTodayMTC = stats.trackedTodayMTC;
+    const requiredCrew = trackedTodayMTC > 0 ? Math.round((((trackedTodayMTC * 2) + 250) * 2) * 1.05) : 0;
+    
+    useEffect(() => {
+        // @ts-ignore
+        if (window.mermaid) {
+            try {
+                // @ts-ignore
+                window.mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+                // @ts-ignore
+                window.mermaid.run();
+            } catch (e) {
+                console.error('Mermaid run error:', e);
+            }
+        }
+    }, [language]); // Re-run when language changes to render the diagram.
+
+    const mermaidDiagram = `graph TD
+    Start(${t('mermaidCombinedStart')})
+
+    Start --> GCC((${t('mermaidCombinedGccFleet')}))
+    Start --> OWNED((${t('mermaidCombinedOwnedFleet')}))
+
+    GCC --> A{${t('mermaidCombinedIsRunning')}}
+    OWNED --> B{${t('mermaidCombinedIsRunning')}}
+
+    A --|${t('mermaidCombinedYes')}|--> C["${t('mermaidCombinedGccRunning')}"];
+    A --|${t('mermaidCombinedNo')}|--> D["${t('mermaidCombinedGccIdle')}"];
+    
+    B --|${t('mermaidCombinedYes')}|--> E["${t('mermaidCombinedOwnedRunning')}"];
+    B --|${t('mermaidCombinedNo')}|--> F["${t('mermaidCombinedOwnedIdle')}"];
+    
+    style Start fill:#fefce8,stroke:#eab308,stroke-width:2px
+    style GCC fill:#f0f9ff,stroke:#38bdf8,stroke-width:2px
+    style OWNED fill:#f0fdf4,stroke:#4ade80,stroke-width:2px
+    style C fill:#e0f2fe,stroke:#7dd3fc
+    style D fill:#fee2e2,stroke:#fca5a5
+    style E fill:#dcfce7,stroke:#86efac
+    style F fill:#fee2e2,stroke:#fca5a5
+`;
+
 
     return (
         <div className="p-3 sm:p-6 bg-gray-50 h-full overflow-y-auto">
@@ -62,7 +122,15 @@ const HomePage: React.FC<HomePageProps> = ({ stats }) => {
                          <div className="grid grid-cols-2 lg:grid-cols-2 gap-4 my-4">
                             <StatDisplay label={t('homeOfficialFleet')} value="3,810" color="#4A5568" />
                             <StatDisplay label={t('homeScheduledServices')} value="3,420" color="#4299E1" />
-                            <StatDisplay label={t('homeTrackedToday')} value={trackedToday > 0 ? trackedToday.toLocaleString() : '...'} color="#48BB78" />
+                            <StatDisplayWithBreakdown 
+                                label={t('homeTrackedToday')} 
+                                total={trackedToday}
+                                breakdown={[
+                                    { label: t('agencyMTC'), value: stats.trackedTodayMTC },
+                                    { label: t('agencySwitch'), value: stats.trackedTodaySwitch }
+                                ]}
+                                color="#48BB78" 
+                            />
                             <StatDisplay label={t('homeTotalOnApp')} value={stats.total > 0 ? stats.total.toLocaleString() : '...'} color="#9F7AEA" />
                         </div>
                         <p className="text-sm text-gray-600 bg-yellow-50 p-3 rounded-md border-l-4 border-yellow-400">{t('homeTheProblemExplanation')}</p>
@@ -86,12 +154,12 @@ const HomePage: React.FC<HomePageProps> = ({ stats }) => {
                         <p className="text-center text-sm">{t('homeCrewIntro')}</p>
                         <div className="grid grid-cols-2 gap-4 my-4">
                             <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                <h4 className="font-semibold text-gray-700 text-sm mb-2">Operational Need</h4>
-                                <ValueDisplay label={t('homeCrewBusesOperatedLabel')} value={t('homeCrewBusesOperatedValue')} />
-                                <ValueDisplay label={t('homeCrewRequiredLabel')} value={t('homeCrewRequiredValue')} tooltip={t('homeCrewCalcTooltip')} />
+                                <h4 className="font-semibold text-gray-700 text-sm mb-2">{t('homeCrewOperationalNeed')}</h4>
+                                <ValueDisplay label={t('homeCrewBusesOperatedLabel')} value={trackedTodayMTC > 0 ? trackedTodayMTC.toLocaleString() : '...'} />
+                                <ValueDisplay label={t('homeCrewRequiredLabel')} value={trackedTodayMTC > 0 ? `~${requiredCrew.toLocaleString()}` : '...'} tooltip={t('homeCrewCalcTooltip')} />
                             </div>
                             <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
-                                <h4 className="font-semibold text-gray-700 text-sm mb-2">Official Report</h4>
+                                <h4 className="font-semibold text-gray-700 text-sm mb-2">{t('homeCrewOfficialReport')}</h4>
                                 <ValueDisplay label={t('homeCrewEmployedLabel')} value={t('homeCrewEmployedValue')} />
                                 <ValueDisplay label={t('homeCrewTripLossLabel')} value={t('homeCrewTripLossValue')} />
                             </div>
@@ -106,6 +174,54 @@ const HomePage: React.FC<HomePageProps> = ({ stats }) => {
                             </a>
                         </div>
                     </InfoTile>
+
+                    <div className="lg:col-span-2">
+                        <InfoTile
+                            title={t('homeWorldBankTitle')}
+                            icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h1a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.884 11.458l.128.012A3 3 0 0110.12 14.5h3.76a3 3 0 012.108-3.03l.128-.012M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                        >
+                           <p>{t('homeWorldBankIntro')}</p>
+                           <div 
+                                className="text-sm text-gray-700 bg-yellow-50 p-3 rounded-md border-l-4 border-yellow-400" 
+                                dangerouslySetInnerHTML={{ __html: t('homeWorldBankConclusion') }} 
+                            />
+                           <div className="text-xs text-right mt-2">
+                               <span className="font-semibold">{t('sourcesLabel')}: </span>
+                               <a href="https://blogs.worldbank.org/en/transport/india-transforming-chennais-bus-services" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                  {t('homeWorldBankSourceLink')}
+                               </a>
+                           </div>
+                        </InfoTile>
+                    </div>
+                    
+                    <div className="lg:col-span-2">
+                        <InfoTile
+                            title={t('homeBusOpsAccountabilityTitle')}
+                            icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
+                        >
+                            {/* Textual Section */}
+                            <div className="space-y-4">
+                                <div dangerouslySetInnerHTML={{ __html: t('homeGccOpsText') }} />
+                                <div className="border-t my-4" />
+                                <div dangerouslySetInnerHTML={{ __html: t('homeOwnedFleetText') }} />
+                            </div>
+
+                            {/* Mermaid Diagram Section */}
+                            <div className="flex justify-center my-6">
+                                <div key={language} className="mermaid bg-gray-50 p-2 sm:p-4 rounded-lg w-full max-w-full mx-auto text-xs sm:text-sm">
+                                    {mermaidDiagram}
+                                </div>
+                            </div>
+                            
+                            <div className="text-xs text-right mt-auto pt-2">
+                                <span className="font-semibold">{t('sourcesLabel')}: </span>
+                                <a href="https://chennai-ebus-report.netlify.app/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                    {t('homeGCCAccountabilityReportLink')}
+                                </a>
+                            </div>
+                        </InfoTile>
+                    </div>
+
                 </div>
             </div>
         </div>
