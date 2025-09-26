@@ -88,6 +88,16 @@ const App: React.FC = () => {
     const isFetching = useRef(false);
     const { t } = useTranslation();
 
+    const handleClearFilters = useCallback(() => {
+        setFilterKey('all');
+        setFilterValue('');
+        setSortConfig({ key: 'route_short_name', direction: 'ascending' });
+        setStatusFilter(['all']); // Reset to show all, not just initial 'running'
+        setFleetFilter(['all']);
+        setSeriesFilter(['all']);
+        setAgencyFilter(['all']);
+    }, []);
+
     useEffect(() => {
         const fetchConfig = async () => {
             try {
@@ -505,6 +515,7 @@ setError(null);
                             scrappedDate={scrappedDate}
                             setScrappedDate={setScrappedDate}
                             agencyConfig={agencyConfig}
+                            handleClearFilters={handleClearFilters}
                         />
                     </div>
                     <div className={`${view === View.Routes ? 'block' : 'hidden'} h-full w-full`}>

@@ -26,6 +26,7 @@ interface FleetViewProps {
     scrappedDate: Date;
     setScrappedDate: (date: Date) => void;
     agencyConfig: AgencyConfig | null;
+    handleClearFilters: () => void;
 }
 
 
@@ -199,11 +200,20 @@ const ROWS_PER_PAGE = 50;
 const FleetView: React.FC<FleetViewProps> = ({ 
     buses, columns, filterKey, setFilterKey, filterValue, setFilterValue, sortConfig, handleSort, 
     statusFilter, setStatusFilter, fleetFilter, setFleetFilter, seriesFilter, setSeriesFilter,
-    agencyFilter, setAgencyFilter, scrappedDate, setScrappedDate, agencyConfig
+    agencyFilter, setAgencyFilter, scrappedDate, setScrappedDate, agencyConfig, handleClearFilters
 }) => {
     const { t } = useTranslation();
     const [filtersVisible, setFiltersVisible] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
+
+    const hasActiveFilters = useMemo(() => {
+        const isDefaultStatus = statusFilter.length === 1 && statusFilter[0] === 'all';
+        const isDefaultFleet = fleetFilter.length === 1 && fleetFilter[0] === 'all';
+        const isDefaultSeries = seriesFilter.length === 1 && seriesFilter[0] === 'all';
+        const isDefaultAgency = agencyFilter.length === 1 && agencyFilter[0] === 'all';
+        
+        return filterValue !== '' || !isDefaultStatus || !isDefaultFleet || !isDefaultSeries || !isDefaultAgency;
+    }, [statusFilter, fleetFilter, seriesFilter, agencyFilter, filterValue]);
 
     useEffect(() => {
         setCurrentPage(1);
@@ -395,43 +405,57 @@ const FleetView: React.FC<FleetViewProps> = ({
                         </svg>
                     </button>
                     {filtersVisible && (
-                        <div className="p-4 border-t grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
-                            {/* Scrapped Date */}
-                            <div>
-                                <label htmlFor="scrapped-date-table" className="text-sm font-medium text-gray-600 mb-1 block">{t('scrappedDateLabel')}</label>
-                                <input
-                                    type="date"
-                                    id="scrapped-date-table"
-                                    value={scrappedDate.toISOString().split('T')[0]}
-                                    onChange={(e) => {
-                                        if(e.target.value) {
-                                            const [year, month, day] = e.target.value.split('-').map(Number);
-                                            setScrappedDate(new Date(year, month - 1, day));
-                                        }
-                                    }}
-                                    className="p-2 border border-gray-300 rounded-md bg-white text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 w-full"
-                                />
-                            </div>
-                            {/* Status Filter */}
-                            <MultiSelectDropdown
-                                id="status-filter"
-                                label={t('quickFiltersLabel')}
-                                options={statusFilters.map(f => ({ value: f.key, label: f.label }))}
-                                selectedValues={statusFilter}
-                                onChange={setStatusFilter}
-                            />
-                            
-                            {/* Dynamic Filters */}
-                            {agencyConfig && agencyConfig.filters.map(filterGroup => (
+                        <div className="p-4 border-t">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+                                {/* Scrapped Date */}
+                                <div>
+                                    <label htmlFor="scrapped-date-table" className="text-sm font-medium text-gray-600 mb-1 block">{t('scrappedDateLabel')}</label>
+                                    <input
+                                        type="date"
+                                        id="scrapped-date-table"
+                                        value={scrappedDate.toISOString().split('T')[0]}
+                                        onChange={(e) => {
+                                            if(e.target.value) {
+                                                const [year, month, day] = e.target.value.split('-').map(Number);
+                                                setScrappedDate(new Date(year, month - 1, day));
+                                            }
+                                        }}
+                                        className="p-2 border border-gray-300 rounded-md bg-white text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 w-full"
+                                    />
+                                </div>
+                                {/* Status Filter */}
                                 <MultiSelectDropdown
-                                    key={filterGroup.id}
-                                    id={`${filterGroup.id}-filter`}
-                                    label={t(filterGroup.labelKey)}
-                                    options={filterGroup.options.map(o => ({ value: o.value, label: t(o.labelKey) }))}
-                                    selectedValues={getActiveFilter(filterGroup.id)}
-                                    onChange={(values) => handleFilterChange(filterGroup.id, values)}
+                                    id="status-filter"
+                                    label={t('quickFiltersLabel')}
+                                    options={statusFilters.map(f => ({ value: f.key, label: f.label }))}
+                                    selectedValues={statusFilter}
+                                    onChange={setStatusFilter}
                                 />
-                            ))}
+                                
+                                {/* Dynamic Filters */}
+                                {agencyConfig && agencyConfig.filters.map(filterGroup => (
+                                    <MultiSelectDropdown
+                                        key={filterGroup.id}
+                                        id={`${filterGroup.id}-filter`}
+                                        label={t(filterGroup.labelKey)}
+                                        options={filterGroup.options.map(o => ({ value: o.value, label: t(o.labelKey) }))}
+                                        selectedValues={getActiveFilter(filterGroup.id)}
+                                        onChange={(values) => handleFilterChange(filterGroup.id, values)}
+                                    />
+                                ))}
+                            </div>
+                            <div className="mt-4 flex justify-end">
+                                <button
+                                    onClick={handleClearFilters}
+                                    disabled={!hasActiveFilters}
+                                    className="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-md hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    {t('clearFiltersButton')}
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>

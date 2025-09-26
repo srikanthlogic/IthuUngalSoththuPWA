@@ -1,4 +1,5 @@
 
+
 import React, { useEffect } from 'react';
 import { useTranslation } from '../context/LanguageContext';
 import { DashboardStats } from '../types';
@@ -180,7 +181,7 @@ const HomePage: React.FC<HomePageProps> = ({ stats }) => {
                             title={t('homeWorldBankTitle')}
                             icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h1a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.884 11.458l.128.012A3 3 0 0110.12 14.5h3.76a3 3 0 012.108-3.03l.128-.012M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                         >
-                           <p>{t('homeWorldBankIntro')}</p>
+                           <p dangerouslySetInnerHTML={{ __html: t('homeWorldBankIntro') }} />
                            <div 
                                 className="text-sm text-gray-700 bg-yellow-50 p-3 rounded-md border-l-4 border-yellow-400" 
                                 dangerouslySetInnerHTML={{ __html: t('homeWorldBankConclusion') }} 
