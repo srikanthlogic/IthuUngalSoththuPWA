@@ -81,7 +81,8 @@ export default async function handler(request: Request): Promise<Response> {
 
   try {
     // Forward Request to Backend
-    const backendUrl = process.env.BACKEND_URL || 'https://jsonplaceholder.typicode.com/users';
+    const backendUrl = process.env.BACKEND_URL;
+    console.log(`BACKEND_URL value for ${requestId}: ${backendUrl || 'undefined'}`);
     if (!backendUrl) {
       console.error(`BACKEND_URL not set for ${requestId}`);
       return new Response(JSON.stringify({ error: 'Internal server error' }), {
@@ -96,6 +97,7 @@ export default async function handler(request: Request): Promise<Response> {
     // Construct full backend URL (strip /api/proxy prefix)
     const targetPath = url.pathname.replace('/api/proxy', '') || '/';
     const backendFullUrl = `${backendUrl}${targetPath}${url.search}`;
+    console.log(`backendFullUrl for ${requestId}: ${backendFullUrl}`);
 
     const backendResponse = await fetch(backendFullUrl, {
       method: 'GET',
