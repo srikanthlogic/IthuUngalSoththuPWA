@@ -17,7 +17,6 @@ components/
 context/
 services/
 data/
-locales/
 
 # TypeScript and build files
 *.ts

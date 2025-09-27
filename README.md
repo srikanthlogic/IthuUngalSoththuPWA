@@ -189,7 +189,8 @@ The codebase is organized as follows:
 /
 ├── public/                # Static assets served at the root
 │   ├── MTC.json           # Main app configuration
-│   ├── locales/           # Translation files (en.json, ta.json)
+│   ├── en.json            # English translation file
+│   └── ta.json            # Tamil translation file
 │   └── ...                # Other assets (icons, manifest.json)
 ├── src/
 │   ├── components/        # Reusable React components

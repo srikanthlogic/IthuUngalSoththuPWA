@@ -373,7 +373,7 @@ jobs:
             console.log(message);
           }
 
- manual-rollback:
+  manual-rollback:
    runs-on: ubuntu-latest
    if: github.event_name == 'workflow_dispatch' && github.event.inputs.rollback == 'true'
 
