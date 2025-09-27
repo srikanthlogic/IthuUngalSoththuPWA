@@ -32,7 +32,7 @@
     "VITE_API_CACHE_DURATION": "300",
     "VITE_API_TIMEOUT": "10000",
     "VITE_API_RETRY_ATTEMPTS": "3",
-    "VITE_API_RETRY_DELAY": "1000"
+    "VITE_API_RETRY_DELAY": "2000"
   },
   "headers": [
     {
