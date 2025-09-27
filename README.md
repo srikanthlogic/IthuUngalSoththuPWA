@@ -24,8 +24,8 @@ According to MTC's official (undated) data, their fleet numbers are significantl
 | --------------------- | --------------- | ------------------- |
 | Official Fleet        | 3,810           | -                   |
 | Scheduled Services    | 3,420           | -                   |
-| Total Buses in Feed   | -               | ~3600+             |
-| Actively Tracked      | -               | Often < 2,500       |
+| Total Buses in Feed   | -               | ~3600+              |
+| Actively Tracked      | -               | Often  ~2,600       |
 
 This significant gap between the officially declared fleet and the number of buses actually running is why public oversight is crucial. The 'Total on App' figure includes every bus ID ever broadcasted by MTC's live feed, which often includes buses that are idle for months or are potentially scrapped but not formally retired from the system.
 
@@ -50,9 +50,8 @@ This approach makes the application highly adaptable. It could be pointed to a d
 
 ## Data Source
 
-This application fetches live data from the public API endpoint used by the official Chennai Bus App: `https://production.zophop.com/vasudha/dispatch/chennai/mtc/bus/`.
+This application fetches live data from the official Chennai Bus App
 
-To bypass browser CORS restrictions during development, the data is fetched via a public proxy (`api.codetabs.com`). For a production deployment, it is highly recommended to set up a dedicated backend service (e.g., on Fly.io, Vercel, or Cloudflare Workers) to proxy requests. This backend would improve reliability, implement caching to reduce load on the source API, and prevent potential rate-limiting or blocking of a public proxy.
 
 ## Technology Stack
 
