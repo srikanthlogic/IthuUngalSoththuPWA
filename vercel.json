@@ -118,7 +118,6 @@
   },
   "regions": ["sin1"],
   "crons": [],
-  "deploymentTarget": "production",
   "autoRollback": {
     "enabled": true,
     "failureThreshold": 3,
