@@ -118,11 +118,6 @@
   },
   "regions": ["sin1"],
   "crons": [],
-  "autoRollback": {
-    "enabled": true,
-    "failureThreshold": 3,
-    "monitoringPeriod": 300
-  },
   "healthCheck": {
     "enabled": true,
     "path": "/api/health",
