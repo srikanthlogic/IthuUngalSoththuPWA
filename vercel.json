@@ -1,14 +1,5 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "outputDirectory": "dist",
@@ -103,17 +94,14 @@
   ],
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
   "functions": {
-    "src": "api/**/*.ts",
-    "engine": "@vercel/edge"
+    "api/**/*.ts": {
+      "runtime": "@vercel/edge"
+    }
   },
   "regions": ["sin1"],
   "crons": []
