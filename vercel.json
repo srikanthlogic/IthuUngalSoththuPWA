@@ -118,9 +118,6 @@
   },
   "regions": ["sin1"],
   "crons": [],
-  "protectionBypass": {
-    "requiredEnvironments": ["production"]
-  },
   "deploymentTarget": "production",
   "autoRollback": {
     "enabled": true,
