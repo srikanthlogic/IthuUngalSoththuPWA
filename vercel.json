@@ -16,7 +16,6 @@
   "env": {
     "NODE_ENV": "production",
     "ENVIRONMENT": "production",
-    "BACKEND_URL": "https://api.mtc-bus-tracker.com",
     "LOG_LEVEL": "info",
     "LOG_STRUCTURED": "true",
     "RATE_LIMIT_REQUESTS_PER_MINUTE": "100",
@@ -117,34 +116,5 @@
     "engine": "@vercel/edge"
   },
   "regions": ["sin1"],
-  "crons": [],
-  "healthCheck": {
-    "enabled": true,
-    "path": "/api/health",
-    "method": "GET",
-    "timeout": 30000,
-    "retries": 3,
-    "headers": {
-      "User-Agent": "Vercel-Health-Check"
-    }
-  },
-  "monitoring": {
-    "enabled": true,
-    "alerts": [
-      {
-        "type": "deployment-failure",
-        "channels": ["email", "slack"]
-      },
-      {
-        "type": "health-check-failure",
-        "channels": ["email", "slack"]
-      }
-    ]
-  },
-  "rollback": {
-    "enabled": true,
-    "automatic": true,
-    "notificationChannels": ["email", "slack"],
-    "requireApproval": false
-  }
+  "crons": []
 }
