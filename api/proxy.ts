@@ -82,7 +82,6 @@ export default async function handler(request: Request): Promise<Response> {
   try {
     // Forward Request to Backend
     const backendUrl = process.env.BACKEND_URL;
-    console.log(`BACKEND_URL value for ${requestId}: ${backendUrl || 'undefined'}`);
     if (!backendUrl) {
       console.error(`BACKEND_URL not set for ${requestId}`);
       return new Response(JSON.stringify({ error: 'Internal server error' }), {
@@ -97,7 +96,6 @@ export default async function handler(request: Request): Promise<Response> {
     // Construct full backend URL (strip /api/proxy prefix)
     const targetPath = url.pathname.replace('/api/proxy', '') || '/';
     const backendFullUrl = `${backendUrl}${targetPath}${url.search}`;
-    console.log(`backendFullUrl for ${requestId}: ${backendFullUrl}`);
 
     const backendResponse = await fetch(backendFullUrl, {
       method: 'GET',
@@ -121,7 +119,7 @@ export default async function handler(request: Request): Promise<Response> {
     let rawBusData;
     try {
       rawBusData = await backendResponse.json();
-      console.log(`Raw backend data for ${requestId}: type=${typeof rawBusData}, isArray=${Array.isArray(rawBusData)}, sample=${JSON.stringify(rawBusData?.slice?.(0,2) || rawBusData || {})}`);
+      // console.log(`Raw backend data for ${requestId}: type=${typeof rawBusData}, isArray=${Array.isArray(rawBusData)}, sample=${JSON.stringify(rawBusData?.slice?.(0,2) || rawBusData || {})}`);
     } catch (parseError) {
       console.error(`Failed to parse backend JSON for ${requestId}: ${parseError}`);
       return new Response(JSON.stringify({ error: 'Invalid backend response' }), {

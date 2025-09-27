@@ -62,7 +62,7 @@ const FleetBreakdownCard: React.FC<{ title: string; stats: FleetStatusBreakdown;
                     </div>
                      <div className="flex justify-between items-center">
                         <span>{t('breakdownIdle7d')}</span>
-                        <span className="font-semibold text-orange-500 bg-orange-100 px-2 py-0.5 rounded">{stats.notRunLessThan7Days}</span>
+                        <span className="font-semibold text-orange-600 bg-orange-100 px-2 py-0.5 rounded">{stats.notRunLessThan7Days}</span>
                     </div>
                     <div className="flex justify-between items-center">
                         <span>{t('breakdownIdle7_30d')}</span>

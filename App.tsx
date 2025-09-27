@@ -15,7 +15,6 @@ import AboutPage from './components/AboutPage';
 import TooltipIcon from './components/TooltipIcon';
 
 
-const REFRESH_INTERVAL = 30000; // 30 seconds
 
 interface BusStatusCounts {
     total: number;
@@ -85,6 +84,27 @@ const App: React.FC = () => {
     const [isAutoRefreshPaused, setIsAutoRefreshPaused] = useState<boolean>(false);
     const [scrappedDate, setScrappedDate] = useState<Date | null>(null);
     
+    const getAutoRefreshInterval = useCallback(() => {
+      try {
+        const envValue = import.meta.env.VITE_AUTO_REFRESH_INTERVAL;
+        if (!envValue) {
+          console.log('VITE_AUTO_REFRESH_INTERVAL unset, defaulting to 30 seconds');
+          return 30 * 1000;
+        }
+        const seconds = parseInt(envValue, 10);
+        if (isNaN(seconds) || seconds <= 0) {
+          console.error(`Invalid VITE_AUTO_REFRESH_INTERVAL value "${envValue}", defaulting to 30 seconds`);
+          return 30 * 1000;
+        }
+        const ms = seconds * 1000;
+        console.log(`Auto-refresh interval configured to ${seconds} seconds (${ms}ms) from VITE_AUTO_REFRESH_INTERVAL`);
+        return ms;
+      } catch (error) {
+        console.error('Error accessing or parsing VITE_AUTO_REFRESH_INTERVAL:', error);
+        return 30 * 1000;
+      }
+    }, []);
+    
     const isFetching = useRef(false);
     const { t } = useTranslation();
 
@@ -112,6 +132,7 @@ const App: React.FC = () => {
                 
                 setAgencyConfig(config);
                 document.title = config.appName;
+                getAutoRefreshInterval();
             } catch (err) {
                 console.error("Failed to load agency configuration:", err);
                 setError("Failed to load agency configuration.");
@@ -287,7 +308,7 @@ setError(null);
         }
     
         fetchBusData();
-        const intervalId = setInterval(fetchBusData, REFRESH_INTERVAL);
+        const intervalId = setInterval(fetchBusData, getAutoRefreshInterval());
         return () => clearInterval(intervalId); // Cleanup interval
     }, [fetchBusData, isAutoRefreshPaused, scrappedDate]);
 
@@ -452,14 +473,14 @@ setError(null);
                 <header className="bg-white shadow-md z-20">
                     <div className="container mx-auto px-4 py-3 flex justify-between items-center">
                         <div className="flex items-center min-w-0">
-                            <button className="text-gray-500 focus:outline-none md:hidden" onClick={() => setIsSidebarOpen(true)} aria-label="Open sidebar">
+                            <button className="text-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 md:hidden" onClick={() => setIsSidebarOpen(true)} aria-label="Open sidebar">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                             </button>
                             <h1 className="text-lg sm:text-xl font-bold text-gray-800 ml-2 md:ml-0 truncate">{viewTitles[view]}</h1>
                         </div>
                         <div className="flex items-center space-x-2 sm:space-x-4">
                             <LanguageSwitcher />
-                            <button onClick={() => setIsAutoRefreshPaused(prev => !prev)} className="p-2 rounded-full hover:bg-gray-200 transition-colors" aria-label={isAutoRefreshPaused ? t('resumeAutoRefresh') : t('pauseAutoRefresh')}>
+                            <button onClick={() => setIsAutoRefreshPaused(prev => !prev)} className="p-2 rounded-full hover:bg-gray-200 transition-colors focus:ring-2 focus:ring-red-500" aria-label={isAutoRefreshPaused ? t('resumeAutoRefresh') : t('pauseAutoRefresh')}>
                                 {isAutoRefreshPaused ? (
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
                                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
@@ -470,7 +491,7 @@ setError(null);
                                     </svg>
                                 )}
                             </button>
-                            <button onClick={() => fetchBusData()} disabled={loading} className="p-2 rounded-full hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Refresh Data">
+                            <button onClick={() => fetchBusData()} disabled={loading} className="p-2 rounded-full hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-red-500" aria-label="Refresh Data">
                                <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 text-gray-600 ${loading ? 'animate-spin' : ''}`} viewBox="0 0 20 20" fill="currentColor">
                                  <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V4a1 1 0 011 1zm12 14a1 1 0 01-1-1v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 111.885-.666A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v4a1 1 0 01-1 1z" clipRule="evenodd" />
                                </svg>
@@ -480,7 +501,7 @@ setError(null);
                 </header>
 
                 <main className="flex-grow overflow-y-auto relative">
-                    {error && <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 px-4 py-2 rounded-md shadow-lg z-20">{error}</div>}
+                    {error && <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 px-4 py-2 rounded-md shadow-lg z-20" role="alert" aria-live="assertive">{error}</div>}
                     
                     {loading && dashboardStats.total === 0 && <Loader text={t('loaderFetching')} />}
 

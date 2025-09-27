@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useTranslation } from '../context/LanguageContext';
-import { DashboardStats } from '../types';
+import { DashboardStats } from '../types.ts';
 
 interface HomePageProps {
     stats: DashboardStats;
@@ -117,7 +117,7 @@ const HomePage: React.FC<HomePageProps> = ({ stats }) => {
                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
                     <InfoTile
                         title={t('homeFleetGapTitle')}
-                        icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>}
+                        icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>}
                     >
                         <p>{t('homeTheProblemIntro')}</p>
                          <div className="grid grid-cols-2 lg:grid-cols-2 gap-4 my-4">
@@ -134,7 +134,7 @@ const HomePage: React.FC<HomePageProps> = ({ stats }) => {
                             />
                             <StatDisplay label={t('homeTotalOnApp')} value={stats.total > 0 ? stats.total.toLocaleString() : '...'} color="#9F7AEA" />
                         </div>
-                        <p className="text-sm text-gray-600 bg-yellow-50 p-3 rounded-md border-l-4 border-yellow-400">{t('homeTheProblemExplanation')}</p>
+                        <p className="text-sm text-yellow-800 bg-yellow-50 p-3 rounded-md border-l-4 border-yellow-400">{t('homeTheProblemExplanation')}</p>
                         <p className="text-center italic">{t('homeTheProblemConclusion')}</p>
                         <div className="text-xs text-right mt-2">
                             <span className="font-semibold">{t('sourcesLabel')}: </span>
@@ -150,10 +150,10 @@ const HomePage: React.FC<HomePageProps> = ({ stats }) => {
                     
                     <InfoTile 
                         title={t('homeCrewShortageTitle')} 
-                        icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.084-1.283-.24-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.084-1.283.24-1.857m12.75-5.643A4.5 4.5 0 0012 12.75a4.5 4.5 0 00-8.25-1.5M12 12.75V15m0 0a2.25 2.25 0 004.5 0V15m-4.5 0a2.25 2.25 0 01-4.5 0V15m0-6.75A4.5 4.5 0 0012 3.75a4.5 4.5 0 00-8.25 1.5M12 3.75V6m0 0a2.25 2.25 0 004.5 0V6m-4.5 0a2.25 2.25 0 01-4.5 0V6" /></svg>}
+                        icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.084-1.283-.24-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.084-1.283.24-1.857m12.75-5.643A4.5 4.5 0 0012 12.75a4.5 4.5 0 00-8.25-1.5M12 12.75V15m0 0a2.25 2.25 0 004.5 0V15m-4.5 0a2.25 2.25 0 01-4.5 0V15m0-6.75A4.5 4.5 0 0012 3.75a4.5 4.5 0 00-8.25 1.5M12 3.75V6m0 0a2.25 2.25 0 004.5 0V6m-4.5 0a2.25 2.25 0 01-4.5 0V6" /></svg>}
                      >
                         <p className="text-center text-sm">{t('homeCrewIntro')}</p>
-                        <div className="grid grid-cols-2 gap-4 my-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
                             <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
                                 <h4 className="font-semibold text-gray-700 text-sm mb-2">{t('homeCrewOperationalNeed')}</h4>
                                 <ValueDisplay label={t('homeCrewBusesOperatedLabel')} value={trackedTodayMTC > 0 ? trackedTodayMTC.toLocaleString() : '...'} />
@@ -179,7 +179,7 @@ const HomePage: React.FC<HomePageProps> = ({ stats }) => {
                     <div className="lg:col-span-2">
                         <InfoTile
                             title={t('homeWorldBankTitle')}
-                            icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h1a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.884 11.458l.128.012A3 3 0 0110.12 14.5h3.76a3 3 0 012.108-3.03l.128-.012M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                            icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h1a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.884 11.458l.128.012A3 3 0 0110.12 14.5h3.76a3 3 0 012.108-3.03l.128-.012M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                         >
                            <p dangerouslySetInnerHTML={{ __html: t('homeWorldBankIntro') }} />
                            <div 
@@ -198,7 +198,7 @@ const HomePage: React.FC<HomePageProps> = ({ stats }) => {
                     <div className="lg:col-span-2">
                         <InfoTile
                             title={t('homeBusOpsAccountabilityTitle')}
-                            icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
+                            icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
                         >
                             {/* Textual Section */}
                             <div className="space-y-4">

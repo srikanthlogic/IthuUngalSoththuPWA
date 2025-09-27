@@ -70,8 +70,13 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     return translation;
   };
 
+  const handleSetLanguage = (newLanguage: Language) => {
+    console.log('setLanguage called with', newLanguage);
+    setLanguage(newLanguage);
+  };
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );
