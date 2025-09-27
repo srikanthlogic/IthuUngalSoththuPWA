@@ -1,0 +1,414 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      rollback:
+        description: 'Trigger manual rollback'
+        required: true
+        type: boolean
+        default: false
+      reason:
+        description: 'Reason for manual rollback'
+        required: false
+        type: string
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        node-version: [18]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+      continue-on-error: false
+
+    - name: Run linting
+      run: npm run lint --if-present
+      continue-on-error: true
+
+    - name: Run tests
+      run: npm run test:run
+      continue-on-error: false
+
+    - name: Run tests with coverage
+      run: npm run test:coverage
+      continue-on-error: false
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      if: always()
+      with:
+        file: ./coverage/coverage-final.json
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: Build application
+      run: npm run build
+      env:
+        NODE_ENV: production
+
+    - name: Verify build output
+      run: |
+        if [ ! -d "dist" ]; then
+          echo "Build failed: dist directory not found"
+          exit 1
+        fi
+        echo "Build output verification passed"
+
+    - name: Deploy to Vercel (Production)
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: amondnet/vercel-action@v25
+      id: vercel-deploy-production
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-args: '--prod'
+        working-directory: ./
+        vercel-project-name: ithu-ungal-soththu-live-tracker
+        alias-domains: |
+          ithu-ungal-soththu-live-tracker.vercel.app
+        env:
+          # Required Environment Variables
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          ENVIRONMENT: ${{ secrets.ENVIRONMENT }}
+          VERCEL_URL: ${{ secrets.VERCEL_URL }}
+          LOG_LEVEL: ${{ secrets.LOG_LEVEL }}
+
+          # Rate Limiting
+          RATE_LIMIT_REQUESTS_PER_MINUTE: ${{ secrets.RATE_LIMIT_REQUESTS_PER_MINUTE }}
+          RATE_LIMIT_WINDOW_MINUTES: ${{ secrets.RATE_LIMIT_WINDOW_MINUTES }}
+
+          # PWA Configuration
+          VITE_APP_NAME: ${{ secrets.VITE_APP_NAME }}
+          VITE_APP_SHORT_NAME: ${{ secrets.VITE_APP_SHORT_NAME }}
+          VITE_APP_DESCRIPTION: ${{ secrets.VITE_APP_DESCRIPTION }}
+          VITE_THEME_COLOR: ${{ secrets.VITE_THEME_COLOR }}
+          VITE_BACKGROUND_COLOR: ${{ secrets.VITE_BACKGROUND_COLOR }}
+
+          # API Configuration
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_API_TIMEOUT: ${{ secrets.VITE_API_TIMEOUT }}
+          VITE_API_RETRY_ATTEMPTS: ${{ secrets.VITE_API_RETRY_ATTEMPTS }}
+          VITE_API_RETRY_DELAY: ${{ secrets.VITE_API_RETRY_DELAY }}
+          VITE_API_CACHE_ENABLED: ${{ secrets.VITE_API_CACHE_ENABLED }}
+          VITE_API_CACHE_DURATION: ${{ secrets.VITE_API_CACHE_DURATION }}
+
+          # Security Configuration
+          CORS_ORIGINS: ${{ secrets.CORS_ORIGINS }}
+          HTTPS_ENFORCED: ${{ secrets.HTTPS_ENFORCED }}
+          SESSION_TIMEOUT: ${{ secrets.SESSION_TIMEOUT }}
+          CSRF_PROTECTION: ${{ secrets.CSRF_PROTECTION }}
+
+          # Performance Configuration
+          VITE_SW_CACHE_ENABLED: ${{ secrets.VITE_SW_CACHE_ENABLED }}
+          VITE_SW_CACHE_VERSION: ${{ secrets.VITE_SW_CACHE_VERSION }}
+          VITE_LAZY_LOADING: ${{ secrets.VITE_LAZY_LOADING }}
+          VITE_IMAGE_QUALITY: ${{ secrets.VITE_IMAGE_QUALITY }}
+          VITE_COMPRESSION_ENABLED: ${{ secrets.VITE_COMPRESSION_ENABLED }}
+
+          # Feature Flags
+          VITE_ENABLE_MAP: ${{ secrets.VITE_ENABLE_MAP }}
+          VITE_ENABLE_NOTIFICATIONS: ${{ secrets.VITE_ENABLE_NOTIFICATIONS }}
+          VITE_ENABLE_OFFLINE: ${{ secrets.VITE_ENABLE_OFFLINE }}
+          VITE_ENABLE_EXPORT: ${{ secrets.VITE_ENABLE_EXPORT }}
+          VITE_DEBUG_MODE: ${{ secrets.VITE_DEBUG_MODE }}
+
+          # Localization
+          VITE_DEFAULT_LANGUAGE: ${{ secrets.VITE_DEFAULT_LANGUAGE }}
+          VITE_RTL_SUPPORT: ${{ secrets.VITE_RTL_SUPPORT }}
+
+          # Monitoring and Analytics (Optional)
+          VITE_GA_ID: ${{ secrets.VITE_GA_ID }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_ERROR_REPORTING: ${{ secrets.VITE_ERROR_REPORTING }}
+          VITE_PERFORMANCE_MONITORING: ${{ secrets.VITE_PERFORMANCE_MONITORING }}
+
+          # Development Configuration
+          VITE_DEV_TOOLS: ${{ secrets.VITE_DEV_TOOLS }}
+          VITE_MOCK_API: ${{ secrets.VITE_MOCK_API }}
+          VITE_HOT_RELOAD: ${{ secrets.VITE_HOT_RELOAD }}
+        scope: ${{ secrets.VERCEL_ORG_ID }}
+
+    - name: Deploy to Vercel (Preview)
+      if: github.event_name == 'pull_request'
+      uses: amondnet/vercel-action@v25
+      id: vercel-deploy-preview
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: ./
+        vercel-project-name: ithu-ungal-soththu-live-tracker
+        alias-domains: |
+          ${{ github.head_ref }}--ithu-ungal-soththu-live-tracker.vercel.app
+        env:
+          # Required Environment Variables
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          ENVIRONMENT: ${{ secrets.ENVIRONMENT }}
+          VERCEL_URL: ${{ secrets.VERCEL_URL }}
+          LOG_LEVEL: ${{ secrets.LOG_LEVEL }}
+
+          # Rate Limiting
+          RATE_LIMIT_REQUESTS_PER_MINUTE: ${{ secrets.RATE_LIMIT_REQUESTS_PER_MINUTE }}
+          RATE_LIMIT_WINDOW_MINUTES: ${{ secrets.RATE_LIMIT_WINDOW_MINUTES }}
+
+          # PWA Configuration
+          VITE_APP_NAME: ${{ secrets.VITE_APP_NAME }}
+          VITE_APP_SHORT_NAME: ${{ secrets.VITE_APP_SHORT_NAME }}
+          VITE_APP_DESCRIPTION: ${{ secrets.VITE_APP_DESCRIPTION }}
+          VITE_THEME_COLOR: ${{ secrets.VITE_THEME_COLOR }}
+          VITE_BACKGROUND_COLOR: ${{ secrets.VITE_BACKGROUND_COLOR }}
+
+          # API Configuration
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_API_TIMEOUT: ${{ secrets.VITE_API_TIMEOUT }}
+          VITE_API_RETRY_ATTEMPTS: ${{ secrets.VITE_API_RETRY_ATTEMPTS }}
+          VITE_API_RETRY_DELAY: ${{ secrets.VITE_API_RETRY_DELAY }}
+          VITE_API_CACHE_ENABLED: ${{ secrets.VITE_API_CACHE_ENABLED }}
+          VITE_API_CACHE_DURATION: ${{ secrets.VITE_API_CACHE_DURATION }}
+
+          # Security Configuration
+          CORS_ORIGINS: ${{ secrets.CORS_ORIGINS }}
+          HTTPS_ENFORCED: ${{ secrets.HTTPS_ENFORCED }}
+          SESSION_TIMEOUT: ${{ secrets.SESSION_TIMEOUT }}
+          CSRF_PROTECTION: ${{ secrets.CSRF_PROTECTION }}
+
+          # Performance Configuration
+          VITE_SW_CACHE_ENABLED: ${{ secrets.VITE_SW_CACHE_ENABLED }}
+          VITE_SW_CACHE_VERSION: ${{ secrets.VITE_SW_CACHE_VERSION }}
+          VITE_LAZY_LOADING: ${{ secrets.VITE_LAZY_LOADING }}
+          VITE_IMAGE_QUALITY: ${{ secrets.VITE_IMAGE_QUALITY }}
+          VITE_COMPRESSION_ENABLED: ${{ secrets.VITE_COMPRESSION_ENABLED }}
+
+          # Feature Flags
+          VITE_ENABLE_MAP: ${{ secrets.VITE_ENABLE_MAP }}
+          VITE_ENABLE_NOTIFICATIONS: ${{ secrets.VITE_ENABLE_NOTIFICATIONS }}
+          VITE_ENABLE_OFFLINE: ${{ secrets.VITE_ENABLE_OFFLINE }}
+          VITE_ENABLE_EXPORT: ${{ secrets.VITE_ENABLE_EXPORT }}
+          VITE_DEBUG_MODE: ${{ secrets.VITE_DEBUG_MODE }}
+
+          # Localization
+          VITE_DEFAULT_LANGUAGE: ${{ secrets.VITE_DEFAULT_LANGUAGE }}
+          VITE_RTL_SUPPORT: ${{ secrets.VITE_RTL_SUPPORT }}
+
+          # Monitoring and Analytics (Optional)
+          VITE_GA_ID: ${{ secrets.VITE_GA_ID }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_ERROR_REPORTING: ${{ secrets.VITE_ERROR_REPORTING }}
+          VITE_PERFORMANCE_MONITORING: ${{ secrets.VITE_PERFORMANCE_MONITORING }}
+
+          # Development Configuration
+          VITE_DEV_TOOLS: ${{ secrets.VITE_DEV_TOOLS }}
+          VITE_MOCK_API: ${{ secrets.VITE_MOCK_API }}
+          VITE_HOT_RELOAD: ${{ secrets.VITE_HOT_RELOAD }}
+        scope: ${{ secrets.VERCEL_ORG_ID }}
+
+    - name: Get deployment URL
+      id: deployment-url
+      run: |
+        if [ "${{ github.event_name }}" == "pull_request" ]; then
+          echo "url=$(echo ${{ steps.vercel-deploy-preview.outputs.preview-url }})" >> $GITHUB_OUTPUT
+        else
+          echo "url=$(echo ${{ steps.vercel-deploy-production.outputs.preview-url }})" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Comment PR with deployment URL
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `🚀 Preview deployment available at: ${{ steps.deployment-url.outputs.url }}`
+          })
+
+    - name: Store deployment info for rollback
+      if: success() && github.ref == 'refs/heads/main'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const deploymentInfo = {
+            deploymentId: '${{ steps.vercel-deploy-production.outputs.deployment-id }}',
+            deploymentUrl: '${{ steps.vercel-deploy-production.outputs.preview-url }}',
+            commitSha: '${{ github.sha }}',
+            timestamp: new Date().toISOString(),
+            branch: '${{ github.ref }}'
+          };
+
+          fs.writeFileSync('deployment-info.json', JSON.stringify(deploymentInfo, null, 2));
+          console.log('Deployment info stored:', deploymentInfo);
+
+    - name: Upload deployment info
+      if: success() && github.ref == 'refs/heads/main'
+      uses: actions/upload-artifact@v4
+      with:
+        name: deployment-info-${{ github.run_number }}
+        path: deployment-info.json
+        retention-days: 30
+
+    - name: Health check after deployment
+      if: success() && github.ref == 'refs/heads/main'
+      id: health-check
+      run: |
+        echo "Performing health check on: ${{ steps.deployment-url.outputs.url }}"
+        # Wait for deployment to be ready
+        sleep 30
+
+        # Perform basic health check
+        if curl -f -s "${{ steps.deployment-url.outputs.url }}/api/health" > /dev/null; then
+          echo "Health check passed"
+          echo "health_status=passed" >> $GITHUB_OUTPUT
+        else
+          echo "Health check failed"
+          echo "health_status=failed" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Automatic rollback on health check failure
+      if: steps.health-check.outputs.health_status == 'failed' && github.ref == 'refs/heads/main'
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-args: '--rollback'
+        working-directory: ./
+        scope: ${{ secrets.VERCEL_ORG_ID }}
+
+    - name: Notify deployment failure and rollback
+      if: steps.health-check.outputs.health_status == 'failed' && github.ref == 'refs/heads/main'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const deploymentUrl = '${{ steps.deployment-url.outputs.url }}';
+
+          const message = `🚨 **Deployment Failed & Auto-Rolled Back**
+
+          - **Deployment URL:** ${deploymentUrl}
+          - **Commit:** ${{ github.sha }}
+          - **Reason:** Health check failed after deployment
+          - **Action:** Automatically rolled back to previous successful deployment
+
+          Please investigate the deployment failure and redeploy after fixing the issues.`;
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: message
+          });
+
+    - name: Notify successful deployment
+      if: steps.health-check.outputs.health_status == 'passed' && github.ref == 'refs/heads/main'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const deploymentUrl = '${{ steps.deployment-url.outputs.url }}';
+
+          const message = `✅ **Deployment Successful**
+
+          - **Deployment URL:** ${deploymentUrl}
+          - **Commit:** ${{ github.sha }}
+          - **Health Check:** Passed
+          - **Status:** Ready for production use`;
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: message
+          });
+
+    - name: Notify deployment status
+      if: always()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const status = '${{ job.status }}';
+          const url = '${{ steps.deployment-url.outputs.url }}';
+
+          let message = '';
+          if (status === 'success') {
+            message = `✅ Deployment successful! Available at: ${url}`;
+          } else {
+            message = `❌ Deployment failed. Check the logs for details.`;
+          }
+
+          if ('${{ github.event_name }}' === 'pull_request') {
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });
+          } else {
+            console.log(message);
+          }
+
+ manual-rollback:
+   runs-on: ubuntu-latest
+   if: github.event_name == 'workflow_dispatch' && github.event.inputs.rollback == 'true'
+
+   steps:
+   - name: Checkout code
+     uses: actions/checkout@v4
+     with:
+       fetch-depth: 0
+
+   - name: Manual Rollback
+     uses: amondnet/vercel-action@v25
+     with:
+       vercel-token: ${{ secrets.VERCEL_TOKEN }}
+       vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+       vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+       vercel-args: '--rollback'
+       working-directory: ./
+       scope: ${{ secrets.VERCEL_ORG_ID }}
+
+   - name: Notify manual rollback completion
+     uses: actions/github-script@v7
+     with:
+       script: |
+         const message = `🔄 **Manual Rollback Completed**
+
+         - **Action:** Manual rollback to previous successful deployment
+         - **Triggered by:** @${{ github.actor }}
+         - **Reason:** ${{ github.event.inputs.reason || 'Manual intervention' }}
+         - **Status:** Rollback completed successfully
+
+         The application has been rolled back to the previous stable version.`;
+
+         github.rest.issues.createComment({
+           issue_number: context.issue.number,
+           owner: context.repo.owner,
+           repo: context.repo.repo,
+           body: message
+         });

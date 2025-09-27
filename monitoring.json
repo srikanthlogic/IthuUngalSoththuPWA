@@ -1,0 +1,164 @@
+{
+  "monitoring": {
+    "enabled": true,
+    "interval": 30000,
+    "timeout": 10000,
+    "retries": 3,
+    "endpoints": {
+      "health": "/api/health",
+      "metrics": "/api/metrics",
+      "status": "/api/status"
+    }
+  },
+  "alerting": {
+    "enabled": true,
+    "channels": {
+      "email": {
+        "enabled": true,
+        "recipients": [
+          "dev-team@company.com",
+          "oncall-engineer@company.com"
+        ],
+        "threshold": "critical"
+      },
+      "slack": {
+        "enabled": true,
+        "webhook_url": "${SLACK_WEBHOOK_URL}",
+        "channel": "#deployments",
+        "threshold": "warning"
+      },
+      "webhook": {
+        "enabled": true,
+        "url": "${MONITORING_WEBHOOK_URL}",
+        "threshold": "info"
+      }
+    },
+    "rules": {
+      "deployment_failure": {
+        "severity": "critical",
+        "channels": ["email", "slack"],
+        "cooldown": 300
+      },
+      "health_check_failure": {
+        "severity": "critical",
+        "channels": ["email", "slack"],
+        "cooldown": 60
+      },
+      "performance_degradation": {
+        "severity": "warning",
+        "channels": ["slack", "webhook"],
+        "cooldown": 300
+      },
+      "rollback_success": {
+        "severity": "info",
+        "channels": ["slack", "webhook"],
+        "cooldown": 60
+      },
+      "rollback_failure": {
+        "severity": "critical",
+        "channels": ["email", "slack"],
+        "cooldown": 60
+      }
+    }
+  },
+  "metrics": {
+    "collection": {
+      "enabled": true,
+      "interval": 60000,
+      "retention_days": 30
+    },
+    "types": {
+      "response_time": {
+        "enabled": true,
+        "thresholds": {
+          "warning": 2000,
+          "critical": 5000
+        }
+      },
+      "error_rate": {
+        "enabled": true,
+        "thresholds": {
+          "warning": 5,
+          "critical": 10
+        }
+      },
+      "throughput": {
+        "enabled": true,
+        "thresholds": {
+          "warning": 100,
+          "critical": 50
+        }
+      },
+      "memory_usage": {
+        "enabled": true,
+        "thresholds": {
+          "warning": 80,
+          "critical": 90
+        }
+      }
+    }
+  },
+  "dashboards": {
+    "grafana": {
+      "enabled": false,
+      "url": "${GRAFANA_URL}",
+      "api_key": "${GRAFANA_API_KEY}",
+      "dashboard_id": "${GRAFANA_DASHBOARD_ID}"
+    },
+    "datadog": {
+      "enabled": false,
+      "api_key": "${DATADOG_API_KEY}",
+      "app_key": "${DATADOG_APP_KEY}"
+    },
+    "new_relic": {
+      "enabled": false,
+      "license_key": "${NEW_RELIC_LICENSE_KEY}",
+      "app_name": "mtc-bus-tracker"
+    }
+  },
+  "logging": {
+    "level": "info",
+    "structured": true,
+    "outputs": {
+      "console": {
+        "enabled": true,
+        "level": "info"
+      },
+      "file": {
+        "enabled": true,
+        "path": "./logs",
+        "level": "debug",
+        "rotation": {
+          "max_size_mb": 100,
+          "max_files": 10
+        }
+      },
+      "external": {
+        "enabled": false,
+        "service": "logstash",
+        "host": "${LOGSTASH_HOST}",
+        "port": 5044
+      }
+    }
+  },
+  "notifications": {
+    "templates": {
+      "deployment_failure": {
+        "subject": "🚨 Deployment Failed - {service_name}",
+        "body": "Deployment {deployment_id} failed at {timestamp}.\n\nError: {error_message}\n\nCheck the deployment logs for more details."
+      },
+      "health_check_failure": {
+        "subject": "🔴 Health Check Failed - {service_name}",
+        "body": "Health check failed for {service_name} at {timestamp}.\n\nURL: {health_check_url}\nStatus: {status}\nResponse Time: {response_time}ms"
+      },
+      "rollback_success": {
+        "subject": "✅ Rollback Completed - {service_name}",
+        "body": "Rollback completed successfully for {service_name}.\n\nPrevious deployment: {previous_deployment_id}\nCurrent deployment: {current_deployment_id}\nRollback reason: {reason}"
+      },
+      "performance_alert": {
+        "subject": "⚠️ Performance Alert - {service_name}",
+        "body": "Performance degradation detected for {service_name}.\n\nMetric: {metric_name}\nCurrent Value: {current_value}\nThreshold: {threshold}\nDuration: {duration}"
+      }
+    }
+  }
+}
