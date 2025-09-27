@@ -100,10 +100,14 @@
   ],
   "functions": [
     {
-      "src": "api/**/*.ts",
-      "runtime": "@vercel/edge"
+      "api/**/*.ts": {
+        "runtime": "@vercel/edge",
+        "maxDuration": 30
+      }
     }
   ],
-  "regions": ["sin1"],
+  "regions": [
+    "sin1"
+  ],
   "crons": []
 }
