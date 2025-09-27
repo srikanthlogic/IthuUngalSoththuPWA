@@ -98,14 +98,12 @@
       "destination": "/index.html"
     }
   ],
-  "functions": [
-    {
-      "api/**/*.ts": {
-        "runtime": "@vercel/edge",
-        "maxDuration": 30
-      }
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "@vercel/edge",
+      "maxDuration": 30
     }
-  ],
+  },
   "regions": [
     "sin1"
   ],
