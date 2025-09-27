@@ -20,6 +20,10 @@ import {
   EnvUtils
 } from './utils.ts';
 
+export const config = {
+  runtime: "edge",
+};
+
 // Configuration
 const PROXY_CONFIG: ProxyConfig = {
   target: EnvUtils.getRequiredEnv('BACKEND_URL'),
