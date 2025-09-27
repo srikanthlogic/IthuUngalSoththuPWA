@@ -90,7 +90,6 @@ jobs:
         alias-domains: |
           ithu-ungal-soththu-live-tracker.vercel.app
         env:
-          # Required Environment Variables
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           BACKEND_URL: ${{ secrets.BACKEND_URL }}
           AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
@@ -166,7 +165,6 @@ jobs:
         alias-domains: |
           ${{ github.head_ref }}--ithu-ungal-soththu-live-tracker.vercel.app
         env:
-          # Required Environment Variables
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           BACKEND_URL: ${{ secrets.BACKEND_URL }}
           AUTH_SECRET: ${{ secrets.AUTH_SECRET }}

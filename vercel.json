@@ -98,11 +98,12 @@
       "destination": "/index.html"
     }
   ],
-  "functions": {
-    "api/**/*.ts": {
+  "functions": [
+    {
+      "src": "api/**/*.ts",
       "runtime": "@vercel/edge"
     }
-  },
+  ],
   "regions": ["sin1"],
   "crons": []
 }
