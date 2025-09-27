@@ -16,5 +16,11 @@
         { "key": "Access-Control-Allow-Origin", "value": "*" }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/proxy",
+      "destination": "/api/proxy"
+    }
   ]
 }
