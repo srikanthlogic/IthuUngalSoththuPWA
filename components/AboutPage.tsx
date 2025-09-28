@@ -96,6 +96,9 @@ const AboutPage: React.FC<AboutPageProps> = ({ stats }) => {
                     <TweetCtaCard stats={stats} />
                 </div>
             </div>
+             <footer className="mt-8 text-center text-gray-600">
+                 Made with ❤️ and ✨
+             </footer>
         </div>
     );
 };
