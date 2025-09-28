@@ -56,7 +56,8 @@ export enum View {
     Dashboard,
     Fleet,
     Routes,
-    About
+    About,
+    IthuUngalSoththu
 }
 
 export interface SortConfig {

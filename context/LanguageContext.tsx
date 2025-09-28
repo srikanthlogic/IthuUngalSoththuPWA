@@ -56,9 +56,17 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   }, [language]);
   
   const t = (key: string, options?: { [key: string]: string | number }): string => {
-    // Get the translation string from the current language's dictionary, falling back to the key
-    let translation = (translations[language] && translations[language][key]) || key;
-    
+    // Get the translation string from the current language's dictionary, supporting nested keys with '.'
+    let translation: any = translations[language];
+    if (translation) {
+        for (const part of key.split('.')) {
+            translation = translation?.[part];
+        }
+    }
+    if (typeof translation !== 'string') {
+        translation = key; // Fallback to key if not found
+    }
+
     // Replace placeholders like {{variable}}
     if (options && translation !== key) {
         Object.keys(options).forEach(optionKey => {
@@ -66,7 +74,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
             translation = translation.replace(regex, String(options[optionKey]));
         });
     }
-    
+
     return translation;
   };
 
