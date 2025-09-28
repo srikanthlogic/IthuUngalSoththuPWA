@@ -175,8 +175,8 @@ const RoutesView: React.FC<RoutesViewProps> = ({ data }) => {
         return sortConfig.direction === 'ascending' ? '▲' : '▼';
     };
     
-    const thClass = "px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none";
-    const groupThClass = "px-2 py-2 text-center text-xs font-semibold text-gray-700 uppercase bg-gray-200";
+    const thClass = "px-4 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none";
+    const groupThClass = "px-4 py-4 text-center text-sm font-semibold text-gray-700 uppercase bg-gray-200";
 
     return (
         <div className="h-full w-full flex flex-col bg-gray-50">
@@ -198,68 +198,108 @@ const RoutesView: React.FC<RoutesViewProps> = ({ data }) => {
             </div>
 
             <div className="flex-grow overflow-auto">
-                <table className="min-w-full divide-y divide-gray-200 border-collapse">
-                    <thead className="bg-gray-100 sticky top-0 z-20">
-                        <tr>
-                            <th colSpan={2} className={groupThClass}>{t('routesHeaderInfo')}</th>
-                            <th colSpan={4} className={groupThClass}>{t('routesHeaderLiveStatus')}</th>
-                            <th colSpan={1} className={groupThClass}>{t('routesHeaderUtilization')}</th>
-                            <th colSpan={3} className={groupThClass}>{t('routesHeaderIdleStatus')}</th>
-                            <th colSpan={4} className={groupThClass}>{t('routesHeaderTotalFleet')}</th>
-                        </tr>
-                        <tr>
-                            <th onClick={() => handleSort('id')} className={`${thClass} sticky left-0 bg-gray-100 z-30 w-24`}><div className="flex items-center"><span>{t('routesColRoute')}</span><span className="ml-1 w-4">{renderSortArrow('id')}</span></div></th>
-                            <th className={`${thClass} w-1/4`}>{t('routesColDestinations')}</th>
-                            <th onClick={() => handleSort('totalRunning')} className={thClass}><div className="flex items-center"><span>{t('routesColRunning')}</span><span className="ml-1 w-4">{renderSortArrow('totalRunning')}</span></div></th>
-                            <th onClick={() => handleSort('totalRanToday')} className={thClass}><div className="flex items-center"><span>{t('routesColRanToday')}</span><span className="ml-1 w-4">{renderSortArrow('totalRanToday')}</span></div></th>
-                             <th onClick={() => handleSort('totalScrapped')} className={thClass}><div className="flex items-center"><span>{t('routesColScrapped')}</span><TooltipIcon tooltipText={t('deemedScrappedTooltip')} /><span className="ml-1 w-4">{renderSortArrow('totalScrapped')}</span></div></th>
-                            <th onClick={() => handleSort('totalBuses')} className={thClass}><div className="flex items-center"><span>{t('routesColTotal')}</span><span className="ml-1 w-4">{renderSortArrow('totalBuses')}</span></div></th>
-                            <th onClick={() => handleSort('utilization')} className={thClass}><div className="flex items-center"><span>{t('routesColActiveTotal')}</span><span className="ml-1 w-4">{renderSortArrow('utilization')}</span></div></th>
-                            <th onClick={() => handleSort('notRunLessThan7Days')} className={thClass}><div className="flex items-center justify-center"><span>{t('routesColIdle7d')}</span><span className="ml-1 w-4">{renderSortArrow('notRunLessThan7Days')}</span></div></th>
-                            <th onClick={() => handleSort('notRun7to30Days')} className={thClass}><div className="flex items-center justify-center"><span>{t('routesColIdle7_30d')}</span><span className="ml-1 w-4">{renderSortArrow('notRun7to30Days')}</span></div></th>
-                            <th onClick={() => handleSort('notRunMoreThan30Days')} className={thClass}><div className="flex items-center justify-center"><span>{t('routesColIdle30d')}</span><span className="ml-1 w-4">{renderSortArrow('notRunMoreThan30Days')}</span></div></th>
-                            <th onClick={() => handleSort('elfac')} className={thClass}><div className="flex items-center"><span>{t('routesColELFAC')}</span><span className="ml-1 w-4">{renderSortArrow('elfac')}</span></div></th>
-                            <th onClick={() => handleSort('elf')} className={thClass}><div className="flex items-center"><span>{t('routesColELF')}</span><span className="ml-1 w-4">{renderSortArrow('elf')}</span></div></th>
-                            <th onClick={() => handleSort('lf')} className={thClass}><div className="flex items-center"><span>{t('routesColDieselLF')}</span><span className="ml-1 w-4">{renderSortArrow('lf')}</span></div></th>
-                            <th onClick={() => handleSort('other')} className={thClass}><div className="flex items-center"><span>{t('routesColOther')}</span><span className="ml-1 w-4">{renderSortArrow('other')}</span></div></th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                <div className="block sm:table w-full sm:min-w-full divide-y sm:divide-y divide-gray-200">
+                    <div className="hidden sm:table-header-group bg-gray-100 sticky top-0 z-20">
+                        <div className="hidden sm:table-row">
+                            <div colSpan={2} className={`${groupThClass} col-span-2 block sm:table-cell`}>{t('routesHeaderInfo')}</div>
+                            <div colSpan={4} className={`${groupThClass} col-span-4 block sm:table-cell`}>{t('routesHeaderLiveStatus')}</div>
+                            <div colSpan={1} className={`${groupThClass} block sm:table-cell`}>{t('routesHeaderUtilization')}</div>
+                            <div colSpan={3} className={`${groupThClass} col-span-3 block sm:table-cell`}>{t('routesHeaderIdleStatus')}</div>
+                            <div colSpan={4} className={`${groupThClass} col-span-4 block sm:table-cell`}>{t('routesHeaderTotalFleet')}</div>
+                        </div>
+                        <div className="hidden sm:table-row">
+                            <div onClick={() => handleSort('id')} className={`${thClass} block sm:table-cell sticky left-0 bg-gray-100 z-30 w-24`}><div className="flex items-center"><span>{t('routesColRoute')}</span><span className="ml-1 w-4">{renderSortArrow('id')}</span></div></div>
+                            <div className={`${thClass} block sm:table-cell w-1/4`}>{t('routesColDestinations')}</div>
+                            <div onClick={() => handleSort('totalRunning')} className={`${thClass} block sm:table-cell`}><div className="flex items-center"><span>{t('routesColRunning')}</span><span className="ml-1 w-4">{renderSortArrow('totalRunning')}</span></div></div>
+                             <div onClick={() => handleSort('totalRanToday')} className={`${thClass} block sm:table-cell`}><div className="flex items-center"><span>{t('routesColRanToday')}</span><span className="ml-1 w-4">{renderSortArrow('totalRanToday')}</span></div></div>
+                              <div onClick={() => handleSort('totalScrapped')} className={`${thClass} block sm:table-cell`}><div className="flex items-center"><span>{t('routesColScrapped')}</span><TooltipIcon tooltipText={t('deemedScrappedTooltip')} /><span className="ml-1 w-4">{renderSortArrow('totalScrapped')}</span></div></div>
+                            <div onClick={() => handleSort('totalBuses')} className={`${thClass} block sm:table-cell`}><div className="flex items-center"><span>{t('routesColTotal')}</span><span className="ml-1 w-4">{renderSortArrow('totalBuses')}</span></div></div>
+                            <div onClick={() => handleSort('utilization')} className={`${thClass} block sm:table-cell`}><div className="flex items-center"><span>{t('routesColActiveTotal')}</span><span className="ml-1 w-4">{renderSortArrow('utilization')}</span></div></div>
+                            <div onClick={() => handleSort('notRunLessThan7Days')} className={`${thClass} block sm:table-cell`}><div className="flex items-center justify-center"><span>{t('routesColIdle7d')}</span><span className="ml-1 w-4">{renderSortArrow('notRunLessThan7Days')}</span></div></div>
+                            <div onClick={() => handleSort('notRun7to30Days')} className={`${thClass} block sm:table-cell`}><div className="flex items-center justify-center"><span>{t('routesColIdle7_30d')}</span><span className="ml-1 w-4">{renderSortArrow('notRun7to30Days')}</span></div></div>
+                            <div onClick={() => handleSort('notRunMoreThan30Days')} className={`${thClass} block sm:table-cell`}><div className="flex items-center justify-center"><span>{t('routesColIdle30d')}</span><span className="ml-1 w-4">{renderSortArrow('notRunMoreThan30Days')}</span></div></div>
+                            <div onClick={() => handleSort('elfac')} className={`${thClass} block sm:table-cell`}><div className="flex items-center"><span>{t('routesColELFAC')}</span><span className="ml-1 w-4">{renderSortArrow('elfac')}</span></div></div>
+                            <div onClick={() => handleSort('elf')} className={`${thClass} block sm:table-cell`}><div className="flex items-center"><span>{t('routesColELF')}</span><span className="ml-1 w-4">{renderSortArrow('elf')}</span></div></div>
+                            <div onClick={() => handleSort('lf')} className={`${thClass} block sm:table-cell`}><div className="flex items-center"><span>{t('routesColDieselLF')}</span><span className="ml-1 w-4">{renderSortArrow('lf')}</span></div></div>
+                            <div onClick={() => handleSort('other')} className={`${thClass} block sm:table-cell`}><div className="flex items-center"><span>{t('routesColOther')}</span><span className="ml-1 w-4">{renderSortArrow('other')}</span></div></div>
+                        </div>
+                    </div>
+                    <div className="table-row-group bg-white">
                         {paginatedData.length > 0 ? paginatedData.map(route => {
                             const totalRunning = sumFleet(route.runningBuses);
                             const totalRanToday = sumFleet(route.ranTodayWithoutTracking);
                             const totalActive = totalRunning + totalRanToday;
-
+                
                             return (
-                                <tr key={route.id} className="hover:bg-gray-50 group">
-                                    <td className="px-2 py-2 whitespace-nowrap text-sm font-bold text-gray-900 sticky left-0 bg-white group-hover:bg-gray-50 z-10">{route.id}</td>
-                                    <td className="px-2 py-2 text-xs text-gray-600 max-w-xs truncate" title={route.destinations.join(', ')}>{route.destinations.join(', ')}</td>
-                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-center"><FleetCountDisplay counts={route.runningBuses} /></td>
-                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-center"><FleetCountDisplay counts={route.ranTodayWithoutTracking} /></td>
-                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-center"><FleetCountDisplay counts={route.scrappedBuses} type="scrapped" /></td>
-                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-700 font-semibold text-center">{route.totalBuses}</td>
-                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-center">
+                                <div key={route.id} className="table-row block bg-white rounded-lg shadow-sm p-4 mb-4 sm:table-row sm:bg-transparent sm:shadow-none sm:p-0 sm:mb-0 hover:bg-gray-50 group sm:border-b sm:border-gray-200">
+                                    <div className="table-cell block sm:table-cell px-4 py-4 mb-2 sm:mb-0 last:mb-0 whitespace-nowrap text-sm font-bold text-gray-900 sticky left-0 bg-white group-hover:bg-gray-50 z-10 sm:sticky sm:left-0">
+                                        <span className="block font-medium text-gray-500 sm:hidden">{t('routesColRoute')}:</span>
+                                        {route.id}
+                                    </div>
+                                    <div className="table-cell block sm:table-cell px-4 py-4 mb-2 sm:mb-0 last:mb-0 text-sm text-gray-600 w-full sm:w-1/4 sm:max-w-xs sm:truncate" title={route.destinations.join(', ')}>
+                                        <span className="block font-medium text-gray-500 sm:hidden">{t('routesColDestinations')}:</span>
+                                        {route.destinations.join(', ')}
+                                    </div>
+                                    <div className="table-cell block sm:table-cell px-4 py-4 mb-2 sm:mb-0 last:mb-0 whitespace-nowrap text-sm text-center">
+                                        <span className="block font-medium text-gray-500 sm:hidden">{t('routesColRunning')}:</span>
+                                        <FleetCountDisplay counts={route.runningBuses} />
+                                    </div>
+                                    <div className="table-cell block sm:table-cell px-4 py-4 mb-2 sm:mb-0 last:mb-0 whitespace-nowrap text-sm text-center">
+                                        <span className="block font-medium text-gray-500 sm:hidden">{t('routesColRanToday')}:</span>
+                                        <FleetCountDisplay counts={route.ranTodayWithoutTracking} />
+                                    </div>
+                                    <div className="table-cell block sm:table-cell px-4 py-4 mb-2 sm:mb-0 last:mb-0 whitespace-nowrap text-sm text-center">
+                                        <span className="block font-medium text-gray-500 sm:hidden">{t('routesColScrapped')}:</span>
+                                        <FleetCountDisplay counts={route.scrappedBuses} type="scrapped" />
+                                    </div>
+                                    <div className="table-cell block sm:table-cell px-4 py-4 mb-2 sm:mb-0 last:mb-0 whitespace-nowrap text-sm text-gray-700 font-semibold text-center">
+                                        <span className="block font-medium text-gray-500 sm:hidden">{t('routesColTotal')}:</span>
+                                        {route.totalBuses}
+                                    </div>
+                                    <div className="table-cell block sm:table-cell px-4 py-4 mb-2 sm:mb-0 last:mb-0 text-sm text-center">
+                                        <span className="block font-medium text-gray-500 sm:hidden">{t('routesColActiveTotal')}:</span>
                                         <div className="font-semibold text-gray-800">{`${totalActive} / ${route.totalBuses}`}</div>
                                         <UtilizationBar total={route.totalBuses} active={totalActive} />
-                                    </td>
-                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-orange-600 text-center">{route.notRunLessThan7Days}</td>
-                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-red-500 text-center">{route.notRun7to30Days}</td>
-                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-red-700 text-center">{route.notRunMoreThan30Days}</td>
-                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-blue-600 text-center">{route.fleet.elfac}</td>
-                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-teal-600 text-center">{route.fleet.elf}</td>
-                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-indigo-600 text-center">{route.fleet.lf}</td>
-                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-600 text-center">{route.fleet.other}</td>
-                                </tr>
+                                    </div>
+                                    <div className="table-cell block sm:table-cell px-4 py-4 mb-2 sm:mb-0 last:mb-0 whitespace-nowrap text-sm text-orange-600 text-center">
+                                        <span className="block font-medium text-gray-500 sm:hidden">{t('routesColIdle7d')}:</span>
+                                        {route.notRunLessThan7Days}
+                                    </div>
+                                    <div className="table-cell block sm:table-cell px-4 py-4 mb-2 sm:mb-0 last:mb-0 whitespace-nowrap text-sm text-red-500 text-center">
+                                        <span className="block font-medium text-gray-500 sm:hidden">{t('routesColIdle7_30d')}:</span>
+                                        {route.notRun7to30Days}
+                                    </div>
+                                    <div className="table-cell block sm:table-cell px-4 py-4 mb-2 sm:mb-0 last:mb-0 whitespace-nowrap text-sm text-red-700 text-center">
+                                        <span className="block font-medium text-gray-500 sm:hidden">{t('routesColIdle30d')}:</span>
+                                        {route.notRunMoreThan30Days}
+                                    </div>
+                                    <div className="table-cell block sm:table-cell px-4 py-4 mb-2 sm:mb-0 last:mb-0 whitespace-nowrap text-sm text-blue-600 text-center">
+                                        <span className="block font-medium text-gray-500 sm:hidden">{t('routesColELFAC')}:</span>
+                                        {route.fleet.elfac}
+                                    </div>
+                                    <div className="table-cell block sm:table-cell px-4 py-4 mb-2 sm:mb-0 last:mb-0 whitespace-nowrap text-sm text-teal-600 text-center">
+                                        <span className="block font-medium text-gray-500 sm:hidden">{t('routesColELF')}:</span>
+                                        {route.fleet.elf}
+                                    </div>
+                                    <div className="table-cell block sm:table-cell px-4 py-4 mb-2 sm:mb-0 last:mb-0 whitespace-nowrap text-sm text-indigo-600 text-center">
+                                        <span className="block font-medium text-gray-500 sm:hidden">{t('routesColDieselLF')}:</span>
+                                        {route.fleet.lf}
+                                    </div>
+                                    <div className="table-cell block sm:table-cell px-4 py-4 mb-2 sm:mb-0 last:mb-0 whitespace-nowrap text-sm text-gray-600 text-center">
+                                        <span className="block font-medium text-gray-500 sm:hidden">{t('routesColOther')}:</span>
+                                        {route.fleet.other}
+                                    </div>
+                                </div>
                             );
                         }) : (
-                           <tr>
-                             <td colSpan={14} className="text-center py-10 text-gray-500">
+                           <div className="table-row block sm:table-row">
+                             <div className="table-cell block sm:table-cell col-span-14 text-center py-10 text-gray-500">
                                {t('routesViewNoRoutes')}
-                             </td>
-                           </tr>
+                             </div>
+                           </div>
                         )}
-                    </tbody>
-                </table>
+                    </div>
+                </div>
             </div>
             
             {/* Pagination Controls */}

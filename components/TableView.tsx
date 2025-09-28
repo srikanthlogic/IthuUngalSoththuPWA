@@ -100,28 +100,31 @@ const MultiSelectDropdown: FC<MultiSelectDropdownProps> = ({ id, label, options,
                 </svg>
             </button>
             {isOpen && (
-                <div className="absolute z-20 mt-1 w-full bg-white shadow-lg border rounded-md max-h-60 overflow-auto">
-                    <ul role="listbox">
-                        {options.map(option => (
-                            <li
-                                key={option.value}
-                                className="p-2 hover:bg-gray-100 cursor-pointer select-none"
-                                onClick={() => handleSelect(option.value)}
-                                role="option"
-                                aria-selected={selectedValues.includes(option.value)}
-                            >
-                                <div className="flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        readOnly
-                                        checked={selectedValues.includes(option.value)}
-                                        className="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500 pointer-events-none"
-                                    />
-                                    <span className="ml-3 text-sm">{option.label}</span>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
+                <div className="fixed inset-0 z-30 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                    <div className="absolute z-40 mt-1 w-full max-w-md bg-white shadow-lg border rounded-md max-h-50vh overflow-auto">
+                        <ul role="listbox">
+                            {options.map(option => (
+                                <li
+                                    key={option.value}
+                                    className="p-2 hover:bg-gray-100 cursor-pointer select-none"
+                                    onClick={() => handleSelect(option.value)}
+                                    role="option"
+                                    aria-selected={selectedValues.includes(option.value)}
+                                >
+                                    <div className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            readOnly
+                                            checked={selectedValues.includes(option.value)}
+                                            className="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500 pointer-events-none"
+                                        />
+                                        <span className="ml-3 text-sm">{option.label}</span>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                    <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setIsOpen(false)}></div>
                 </div>
             )}
         </div>
@@ -490,42 +493,42 @@ const FleetView: React.FC<FleetViewProps> = ({
 
             {/* Table */}
             <div className="flex-grow overflow-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-100 sticky top-0 z-10">
-                        <tr>
+                <div className="block sm:table w-full sm:min-w-full divide-y sm:divide-y divide-gray-200">
+                    <div className="hidden sm:table-header-group bg-gray-100 sticky top-0 z-10">
+                        <div className="hidden sm:table-row">
                             {columns.map((col, index) => (
-                                <th
+                                <div
                                     key={String(col.key)}
-                                    scope="col"
                                     onClick={() => handleSort(col.key)}
-                                    className={`px-2 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none ${index === 0 ? 'sticky left-0 bg-gray-100 z-10' : ''}`}
+                                    className={`block sm:table-cell px-2 py-3 sm:px-6 text-left text-sm font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none ${index === 0 ? 'sticky left-0 bg-gray-100 z-10' : ''}`}
                                 >
                                     <div className="flex items-center">
                                         <span>{col.header}</span>
                                         <span className="ml-2 w-4">{renderSortArrow(col.key)}</span>
                                     </div>
-                                </th>
+                                </div>
                             ))}
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                        </div>
+                    </div>
+                    <div className="table-row-group bg-white">
                         {paginatedBuses.length > 0 ? paginatedBuses.map(bus => (
-                            <tr key={bus.id} className="hover:bg-gray-50 even:bg-gray-50 group">
+                            <div key={bus.id} className="table-row block bg-white rounded-lg shadow-sm p-4 mb-4 sm:table-row sm:bg-transparent sm:shadow-none sm:p-0 sm:mb-0 hover:bg-gray-50 even:bg-gray-50 group sm:border-b sm:border-gray-200">
                                 {columns.map((col, colIndex) => (
-                                    <td key={`${bus.id}-${String(col.key)}`} className={`px-2 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-700 ${colIndex === 0 ? 'sticky left-0 bg-white group-hover:bg-gray-50 even:bg-gray-50 z-10 font-medium text-gray-900' : ''}`}>
+                                    <div key={`${bus.id}-${String(col.key)}`} className={`table-cell block sm:table-cell px-2 py-3 sm:px-6 sm:py-4 mb-2 sm:mb-0 last:mb-0 whitespace-nowrap text-sm text-gray-700 ${colIndex === 0 ? 'sticky left-0 bg-white group-hover:bg-gray-50 even:bg-gray-50 z-10 font-medium text-gray-900' : ''}`}>
+                                        <span className="block font-medium text-gray-500 sm:hidden">{col.header}:</span>
                                         {col.render ? col.render(bus[col.key], bus) : String(bus[col.key] ?? '-')}
-                                    </td>
+                                    </div>
                                 ))}
-                            </tr>
+                            </div>
                         )) : (
-                           <tr>
-                             <td colSpan={columns.length || 1} className="text-center py-10 text-gray-500">
+                           <div className="table-row block sm:table-row">
+                             <div className="table-cell block sm:table-cell col-span-full text-center py-10 text-gray-500">
                                {t('fleetViewNoBuses')}
-                             </td>
-                           </tr>
+                             </div>
+                           </div>
                         )}
-                    </tbody>
-                </table>
+                    </div>
+                </div>
             </div>
 
              {/* Pagination Controls */}

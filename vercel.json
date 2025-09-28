@@ -1,0 +1,26 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "headers": [
+    {
+      "source": "MTC.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    },
+    {
+      "source": "/locales/:lang.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/proxy",
+      "destination": "/api/proxy"
+    }
+  ]
+}

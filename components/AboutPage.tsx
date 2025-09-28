@@ -12,7 +12,7 @@ const CtaCard: React.FC = () => {
     return (
         <div className="bg-gradient-to-br from-red-100 to-yellow-100 p-4 sm:p-6 rounded-lg shadow-md border-l-4 border-red-500">
             <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">{t('ctaTitle')}</h3>
-            <p className="text-gray-700 mb-4">{t('ctaBody')}</p>
+            <p className="text-gray-800 mb-4">{t('ctaBody')}</p>
             <a
                 href="https://rtiindia.gov.in/"
                 target="_blank"
@@ -27,9 +27,13 @@ const CtaCard: React.FC = () => {
 
 const TweetCtaCard: React.FC<{ stats: DashboardStats }> = ({ stats }) => {
     const { t } = useTranslation();
-    const tweetText = t('tweetText', { 
-        total: stats.total, 
-        running: stats.running, 
+    const X = stats.running;
+    const Z = stats.running + stats.ranTodayWithoutTracking;
+    const Y = Z - X;
+    const tweetText = t('tweetText', {
+        X,
+        Z,
+        Y
     });
     
     const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;

@@ -1,6 +1,5 @@
 
 
-import React from 'react';
 
 export interface BusData {
     id: string;
@@ -88,7 +87,7 @@ export interface RouteInfo {
 export interface TableColumn {
     key: keyof BusData;
     header: string;
-    render?: (value: any, row: BusData) => string | React.ReactElement;
+    render?: (value: any, row: BusData) => string | any;
 }
 
 export type StatusFilter = string[];

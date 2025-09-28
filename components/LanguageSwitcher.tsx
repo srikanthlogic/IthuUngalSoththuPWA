@@ -15,14 +15,17 @@ const LanguageSwitcher: React.FC = () => {
         className={`px-3 py-1 rounded-md transition-colors ${language === 'en' ? 'bg-white text-red-700 font-semibold' : 'text-white'}`}
         aria-pressed={language === 'en'}
       >
-        English
+        EN
       </button>
       <button
-        onClick={() => switchLanguage('ta')}
+        onClick={() => {
+          console.log('Tamil button clicked');
+          switchLanguage('ta');
+        }}
         className={`px-3 py-1 rounded-md transition-colors ${language === 'ta' ? 'bg-white text-red-700 font-semibold' : 'text-white'}`}
         aria-pressed={language === 'ta'}
       >
-        தமிழ்
+        த
       </button>
     </div>
   );
