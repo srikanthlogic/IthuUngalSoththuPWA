@@ -1,24 +1,37 @@
 # Chennai MTC Public Fleet Tracker
 
-**#IthuUngalSoththu (#ThisIsYourProperty)**
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-22-green)](https://nodejs.org/)
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black)](https://ithuungalsoththu.vercel.app/)
+[![X](https://img.shields.io/badge/X-%23000000.svg?style=for-the-badge&logo=X&logoColor=white)](https://x.com/hashtag/IthuUngalSoththu)
+
+**#IthuUngalSoththu (#ThisIsYourAsset)**
 
 This project is a public effort to enhance accountability in Chennai's public transport system. By providing a live, verifiable view of the Metropolitan Transport Corporation (MTC) fleet, we aim to empower citizens with the data they need to advocate for better services.
 
 MTC, the public bus operator in Chennai, does not publish real-time, daily data on its fleet operations that can be independently verified. This Progressive Web App (PWA) consumes live data to present an accurate picture of how many buses are on the road at any given time, contrasting official figures with live data to highlight the accountability gap.
 
+## Usage
+
+- View live dashboard for real-time fleet status.
+- Explore fleet data with filters, search, and export to CSV.
+- Analyze routes.
+- Switch languages (English/Tamil).
+- Installable PWA.
+
 ## Key Features
 
-*   **Accountability Homepage:** The landing page provides a clear, data-driven narrative about the discrepancies between official reports and live data regarding fleet size and crew availability, setting the context for the app's purpose.
-*   **Live Dashboard:** A high-level, real-time overview of the entire fleet's status. It includes key performance indicators like total buses, active buses, idle buses, and "deemed scrapped" buses, with breakdowns by agency (MTC vs. Switch Mobility) and fleet composition (Electric, Diesel, etc.).
-*   **Detailed Fleet View:** A powerful data table for granular analysis of every bus. Users can search, sort, and apply multiple, combinable filters (status, fleet type, agency, series). The view includes summary statistics that update dynamically with the filters.
-*   **Route Analysis:** Analyze the performance and fleet deployment on a per-route basis. This view shows how many buses of each type are running, idle, or scrapped on each route, along with a utilization metric to quickly identify under-serviced routes.
-*   **Data Export:** Both the Fleet and Routes views allow users to export the currently filtered and sorted data to CSV format for offline analysis, research, and reporting.
-*   **Multilingual Interface:** Full support for both English and Tamil (தமிழ்), with translations managed in a clean `i18n` pattern.
-*   **Progressive Web App (PWA):** Installable on mobile and desktop devices for an app-like experience. The service worker provides basic offline capabilities by caching the application shell.
+- Accountability homepage with data-driven narrative.
+- Live dashboard with fleet KPIs.
+- Detailed fleet view with filters and search.
+- Route analysis with utilization metrics.
+- Data export to CSV.
+- Multilingual support (English/Tamil).
+- PWA with offline capabilities.
 
 ## The Accountability Gap
 
-According to MTC's official (undated) data, their fleet numbers are significantly higher than what is observed in the live data feed.
+Official figures vs. live data show significant discrepancies in fleet size and operations.
 
 | Metric                | Official Figure | Live Data (Example) |
 | --------------------- | --------------- | ------------------- |
@@ -27,16 +40,11 @@ According to MTC's official (undated) data, their fleet numbers are significantl
 | Total Buses in Feed   | -               | ~3600+              |
 | Actively Tracked      | -               | Often  ~2,600       |
 
-This significant gap between the officially declared fleet and the number of buses actually running is why public oversight is crucial. The 'Total on App' figure includes every bus ID ever broadcasted by MTC's live feed, which often includes buses that are idle for months or are potentially scrapped but not formally retired from the system.
+The gap highlights the need for public oversight. 'Total on App' includes idle or scrapped buses.
 
 ### The Crew Discrepancy
 
-The 2023-24 annual report of MTC mentions **2,447,403 trip losses** due to a "want of crew". However, this raises questions about resource allocation:
-
-*   Operating ~2,500 buses daily requires approximately **10,000 crew members** (based on 2 shifts per day, 2 crew per bus).
-*   Even when accounting for additional night services, this number does not align with the **~19,000 crew members** reportedly employed by MTC.
-
-This discrepancy between reported crew shortages and the number of staff required for the active fleet suggests a deeper issue in operational management and transparency.
+MTC reports 2.4M trip losses due to crew shortages, yet employs ~19,000 staff for ~2,500 buses requiring ~10,000 crew, indicating operational issues.
 
 ## Configuration-Driven Architecture
 
@@ -50,12 +58,12 @@ This approach makes the application highly adaptable. It could be pointed to a d
 
 ## Data Source
 
-This application fetches live data from the official Chennai Bus App
-
+This application fetches live data from the official Chennai Bus App.
 
 ## Technology Stack
 
 *   **Core:** React 19, TypeScript
+*   **Build Tool:** Vite
 *   **Styling:** Tailwind CSS for a utility-first approach.
 *   **State Management:** React Hooks (`useState`, `useMemo`, `useCallback`) for local component state and derived data memoization.
 *   **Internationalization (i18n):** React Context API for managing language state (English & Tamil).
@@ -83,22 +91,14 @@ The codebase is organized as follows:
 └── service-worker.js      # PWA service worker
 ```
 
-## How to Run Locally
+## Contributing
 
-This project is a static web application and does not require a complex build process.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-1.  **Prerequisites:** You need a local web server to serve the files. Most modern development environments have one built-in. If not, you can use a simple tool like Python's built-in server.
-2.  **Clone the Repository:**
-    ```bash
-    git clone <repository-url>
-    cd <repository-directory>
-    ```
-3.  **Serve the Files:**
-    For example, if you have Python 3 installed:
-    ```bash
-    python -m http.server 8000
-    ```
-    This will start a web server on port 8000.
+## License
 
-4.  **View the App:**
-    Open your browser and navigate to `http://localhost:8000`. The application should load and start fetching live data.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Credits
+
+Special thanks to supporters of IthuUngalSoththu, Google Gemini, and XAI Grok for their contributions.

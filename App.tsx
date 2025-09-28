@@ -12,6 +12,7 @@ import { getBusData } from './services/apiService';
 import Sidebar from './components/Sidebar';
 import HomePage from './components/HomePage';
 import AboutPage from './components/AboutPage';
+import IthuUngalSoththuPage from './components/IthuUngalSoththuPage';
 import TooltipIcon from './components/TooltipIcon';
 
 
@@ -67,7 +68,7 @@ const App: React.FC = () => {
     const [routesData, setRoutesData] = useState<RouteInfo[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const [view, setView] = useState<View>(View.Home);
+    const [view, setView] = useState<View>(View.IthuUngalSoththu);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
     const [statusCounts, setStatusCounts] = useState<BusStatusCounts>({ total: 0, running: 0, ranTodayWithoutTracking: 0, idle: 0, scrapped: 0 });
     const [dashboardStats, setDashboardStats] = useState<DashboardStats>(initialDashboardStats);
@@ -454,6 +455,7 @@ setError(null);
         [View.Fleet]: t('navFleet'),
         [View.Routes]: t('navRoutes'),
         [View.About]: t('aboutTitle'),
+        [View.IthuUngalSoththu]: t('navIthuUngalSoththu'),
     };
 
     if (!agencyConfig || !scrappedDate) {
@@ -544,6 +546,9 @@ setError(null);
                     </div>
                     <div className={`${view === View.About ? 'block' : 'hidden'} h-full w-full`}>
                         <AboutPage stats={dashboardStats} />
+                    </div>
+                    <div className={`${view === View.IthuUngalSoththu ? 'block' : 'hidden'} h-full w-full`}>
+                        <IthuUngalSoththuPage setView={setView} />
                     </div>
                 </main>
 
