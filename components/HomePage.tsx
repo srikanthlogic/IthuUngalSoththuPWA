@@ -132,7 +132,15 @@ const HomePage: React.FC<HomePageProps> = ({ stats }) => {
                                 ]}
                                 color="#48BB78" 
                             />
-                            <StatDisplay label={t('homeTotalOnApp')} value={stats.total > 0 ? stats.total.toLocaleString() : '...'} color="#9F7AEA" />
+                            <StatDisplayWithBreakdown
+                                label={t('homeTotalOnApp')}
+                                total={stats.total}
+                                breakdown={[
+                                    { label: t('agencyMTC'), value: stats.totalMTC },
+                                    { label: t('agencySwitch'), value: stats.totalSwitch }
+                                ]}
+                                color="#9F7AEA"
+                            />
                         </div>
                         <p className="text-sm text-yellow-800 bg-yellow-50 p-3 rounded-md border-l-4 border-yellow-400">{t('homeTheProblemExplanation')}</p>
                         <p className="text-center italic">{t('homeTheProblemConclusion')}</p>
