@@ -71,44 +71,7 @@ const HomePage: React.FC<HomePageProps> = ({ stats }) => {
     const trackedToday = stats.running + stats.ranTodayWithoutTracking;
     const trackedTodayMTC = stats.trackedTodayMTC;
     const requiredCrew = trackedTodayMTC > 0 ? Math.round((((trackedTodayMTC * 2) + 250) * 2) * 1.05) : 0;
-    
-    useEffect(() => {
-        // @ts-ignore
-        if (window.mermaid) {
-            try {
-                // @ts-ignore
-                window.mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
-                // @ts-ignore
-                window.mermaid.run();
-            } catch (e) {
-                console.error('Mermaid run error:', e);
-            }
-        }
-    }, [language]); // Re-run when language changes to render the diagram.
 
-    const mermaidDiagram = `graph TD
-    Start(${t('mermaidCombinedStart')})
-
-    Start --> GCC((${t('mermaidCombinedGccFleet')}))
-    Start --> OWNED((${t('mermaidCombinedOwnedFleet')}))
-
-    GCC --> A{${t('mermaidCombinedIsRunning')}}
-    OWNED --> B{${t('mermaidCombinedIsRunning')}}
-
-    A --|${t('mermaidCombinedYes')}|--> C["${t('mermaidCombinedGccRunning')}"];
-    A --|${t('mermaidCombinedNo')}|--> D["${t('mermaidCombinedGccIdle')}"];
-    
-    B --|${t('mermaidCombinedYes')}|--> E["${t('mermaidCombinedOwnedRunning')}"];
-    B --|${t('mermaidCombinedNo')}|--> F["${t('mermaidCombinedOwnedIdle')}"];
-    
-    style Start fill:#fefce8,stroke:#eab308,stroke-width:2px
-    style GCC fill:#f0f9ff,stroke:#38bdf8,stroke-width:2px
-    style OWNED fill:#f0fdf4,stroke:#4ade80,stroke-width:2px
-    style C fill:#e0f2fe,stroke:#7dd3fc
-    style D fill:#fee2e2,stroke:#fca5a5
-    style E fill:#dcfce7,stroke:#86efac
-    style F fill:#fee2e2,stroke:#fca5a5
-`;
 
 
     return (
@@ -215,12 +178,6 @@ const HomePage: React.FC<HomePageProps> = ({ stats }) => {
                                 <div dangerouslySetInnerHTML={{ __html: t('homeOwnedFleetText') }} />
                             </div>
 
-                            {/* Mermaid Diagram Section */}
-                            <div className="flex justify-center my-6">
-                                <div key={language} className="mermaid bg-gray-50 p-2 sm:p-4 rounded-lg w-full max-w-full mx-auto text-xs sm:text-sm">
-                                    {mermaidDiagram}
-                                </div>
-                            </div>
                             
                             <div className="text-xs text-right mt-auto pt-2">
                                 <span className="font-semibold">{t('sourcesLabel')}: </span>
