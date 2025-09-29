@@ -168,11 +168,12 @@ export default async function handler(request: Request): Promise<Response> {
       });
     }
 
+    const sMaxAge = process.env.CACHE_S_MAXAGE || '30';
     console.log(`Proxy success: ${busData.length} buses fetched for ${requestId}`);
     return new Response(JSON.stringify(busData), {
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60', // Vercel Edge Cache for 30s, stale for 60s
+        'Cache-Control': `public, s-maxage=${sMaxAge}, stale-while-revalidate=60`, // Vercel Edge Cache
       },
     });
 
