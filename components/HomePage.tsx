@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react';
 import { useTranslation } from '../context/LanguageContext';
 import { DashboardStats } from '../types.ts';
+import data from '../public/MTC.json';
 
 interface HomePageProps {
     stats: DashboardStats;
@@ -53,6 +54,33 @@ const ValueDisplay: React.FC<{ label: string; value: string | number; tooltip?: 
     </div>
 );
 
+const TweetCtaCard: React.FC<{ stats: DashboardStats }> = ({ stats }) => {
+    const { t } = useTranslation();
+    const Z = stats.running + stats.ranTodayWithoutTracking;
+    const X = stats.running;
+    const Y = Z - X;
+    const idle = data.scheduled - Z;
+    const tweetText = t('tweetText', { X, Z, Y, idle });
+
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+
+    return (
+        <div className="bg-gradient-to-br from-blue-100 to-cyan-100 p-4 sm:p-6 rounded-lg shadow-md border-l-4 border-blue-500">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">{t('tweetCtaTitle')}</h3>
+            <p className="text-gray-700 mb-4">{t('tweetCtaBody')}</p>
+            <a
+                href={tweetUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center bg-blue-500 text-white font-semibold px-4 py-2 rounded-md hover:bg-blue-600 transition-transform transform hover:scale-105"
+            >
+                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.71v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path></svg>
+                {t('tweetCtaButton')}
+            </a>
+        </div>
+    );
+};
+
 
 const InfoTile: React.FC<{ title: string; children: React.ReactNode; icon: React.ReactElement }> = ({ title, children, icon }) => (
     <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 h-full flex flex-col">
@@ -71,44 +99,7 @@ const HomePage: React.FC<HomePageProps> = ({ stats }) => {
     const trackedToday = stats.running + stats.ranTodayWithoutTracking;
     const trackedTodayMTC = stats.trackedTodayMTC;
     const requiredCrew = trackedTodayMTC > 0 ? Math.round((((trackedTodayMTC * 2) + 250) * 2) * 1.05) : 0;
-    
-    useEffect(() => {
-        // @ts-ignore
-        if (window.mermaid) {
-            try {
-                // @ts-ignore
-                window.mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
-                // @ts-ignore
-                window.mermaid.run();
-            } catch (e) {
-                console.error('Mermaid run error:', e);
-            }
-        }
-    }, [language]); // Re-run when language changes to render the diagram.
 
-    const mermaidDiagram = `graph TD
-    Start(${t('mermaidCombinedStart')})
-
-    Start --> GCC((${t('mermaidCombinedGccFleet')}))
-    Start --> OWNED((${t('mermaidCombinedOwnedFleet')}))
-
-    GCC --> A{${t('mermaidCombinedIsRunning')}}
-    OWNED --> B{${t('mermaidCombinedIsRunning')}}
-
-    A --|${t('mermaidCombinedYes')}|--> C["${t('mermaidCombinedGccRunning')}"];
-    A --|${t('mermaidCombinedNo')}|--> D["${t('mermaidCombinedGccIdle')}"];
-    
-    B --|${t('mermaidCombinedYes')}|--> E["${t('mermaidCombinedOwnedRunning')}"];
-    B --|${t('mermaidCombinedNo')}|--> F["${t('mermaidCombinedOwnedIdle')}"];
-    
-    style Start fill:#fefce8,stroke:#eab308,stroke-width:2px
-    style GCC fill:#f0f9ff,stroke:#38bdf8,stroke-width:2px
-    style OWNED fill:#f0fdf4,stroke:#4ade80,stroke-width:2px
-    style C fill:#e0f2fe,stroke:#7dd3fc
-    style D fill:#fee2e2,stroke:#fca5a5
-    style E fill:#dcfce7,stroke:#86efac
-    style F fill:#fee2e2,stroke:#fca5a5
-`;
 
 
     return (
@@ -176,6 +167,7 @@ const HomePage: React.FC<HomePageProps> = ({ stats }) => {
                         <p className="text-sm text-center italic text-gray-600 bg-red-50 p-3 rounded-md border-l-4 border-red-400">
                             {t('homeCrewConclusion')}
                         </p>
+                        <TweetCtaCard stats={stats} />
                         <div className="text-xs text-right mt-auto pt-4">
                             <span className="font-semibold">{t('sourcesLabel')}: </span>
                             <a href="https://mtcbus.tn.gov.in/asset/forms/MTC-52_nd_ANNUAL_REPORT_2023-2024.pdf" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
@@ -215,12 +207,6 @@ const HomePage: React.FC<HomePageProps> = ({ stats }) => {
                                 <div dangerouslySetInnerHTML={{ __html: t('homeOwnedFleetText') }} />
                             </div>
 
-                            {/* Mermaid Diagram Section */}
-                            <div className="flex justify-center my-6">
-                                <div key={language} className="mermaid bg-gray-50 p-2 sm:p-4 rounded-lg w-full max-w-full mx-auto text-xs sm:text-sm">
-                                    {mermaidDiagram}
-                                </div>
-                            </div>
                             
                             <div className="text-xs text-right mt-auto pt-2">
                                 <span className="font-semibold">{t('sourcesLabel')}: </span>

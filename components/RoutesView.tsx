@@ -201,13 +201,6 @@ const RoutesView: React.FC<RoutesViewProps> = ({ data }) => {
                 <div className="block sm:table w-full sm:min-w-full divide-y sm:divide-y divide-gray-200">
                     <div className="hidden sm:table-header-group bg-gray-100 sticky top-0 z-20">
                         <div className="hidden sm:table-row">
-                            <div colSpan={2} className={`${groupThClass} col-span-2 block sm:table-cell`}>{t('routesHeaderInfo')}</div>
-                            <div colSpan={4} className={`${groupThClass} col-span-4 block sm:table-cell`}>{t('routesHeaderLiveStatus')}</div>
-                            <div colSpan={1} className={`${groupThClass} block sm:table-cell`}>{t('routesHeaderUtilization')}</div>
-                            <div colSpan={3} className={`${groupThClass} col-span-3 block sm:table-cell`}>{t('routesHeaderIdleStatus')}</div>
-                            <div colSpan={4} className={`${groupThClass} col-span-4 block sm:table-cell`}>{t('routesHeaderTotalFleet')}</div>
-                        </div>
-                        <div className="hidden sm:table-row">
                             <div onClick={() => handleSort('id')} className={`${thClass} block sm:table-cell sticky left-0 bg-gray-100 z-30 w-24`}><div className="flex items-center"><span>{t('routesColRoute')}</span><span className="ml-1 w-4">{renderSortArrow('id')}</span></div></div>
                             <div className={`${thClass} block sm:table-cell w-1/4`}>{t('routesColDestinations')}</div>
                             <div onClick={() => handleSort('totalRunning')} className={`${thClass} block sm:table-cell`}><div className="flex items-center"><span>{t('routesColRunning')}</span><span className="ml-1 w-4">{renderSortArrow('totalRunning')}</span></div></div>

@@ -54,7 +54,7 @@ const IthuUngalSoththuPage: React.FC<IthuUngalSoththuPageProps> = ({ setView }) 
                 </div>
 
                 <InfoCard title={t('pages.ithuUngalSoththu.introTitle')}>
-                    <p>{t('pages.ithuUngalSoththu.introContent')}</p>
+                    <p dangerouslySetInnerHTML={{ __html: t('pages.ithuUngalSoththu.introContent')}}></p>
                     <p>{t('pages.ithuUngalSoththu.introContent2')}</p>
                     <div dangerouslySetInnerHTML={{ __html: t('pages.ithuUngalSoththu.introAdditional') }}></div>
                     <p dangerouslySetInnerHTML={{ __html: t('pages.ithuUngalSoththu.introEtymology') }}></p>

@@ -5,6 +5,7 @@
   "appName": "Chennai MTC Live Tracker",
   "appHashtag": "#IthuUngalSoththu",
   "deemedScrappedDays": 60,
+  "scheduled": 3420,
   "filters": [
     {
       "id": "fleet",
