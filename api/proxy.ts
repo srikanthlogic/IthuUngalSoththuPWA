@@ -172,7 +172,7 @@ export default async function handler(request: Request): Promise<Response> {
     return new Response(JSON.stringify(busData), {
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=30', // Short cache for live data
+        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60', // Vercel Edge Cache for 30s, stale for 60s
       },
     });
 
